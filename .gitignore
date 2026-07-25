@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+bot_errors.log
+data/*.json
+!data/*.example.json
+venv/
