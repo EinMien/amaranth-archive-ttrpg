@@ -1,6 +1,7 @@
 # amaranth-archive-ttrpg
 
 **Asynchronous TTRPG Campaign Engine, Multi-Tenant State Manager & Preference Matrix**
+**Developed for Lovable_Sylveon**
 
 ## System Architecture
 
