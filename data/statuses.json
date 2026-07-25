@@ -1,0 +1,910 @@
+{
+    "Good STATUSes": {
+        "alert": {
+            "title": "ALERT",
+            "effect": "The afflicted gains +15 to Counterattack Damage. When the afflicted is HIT by an attack while this effect is applied, they can choose to Counterattack.",
+            "text": "_ is aware of their surroundings...",
+            "aliases": [
+                "alert"
+            ],
+            "weight": 1.0
+        },
+        "astute": {
+            "title": "ASTUTE",
+            "effect": "Can stack up to Tier (V). The afflicted takes (0.875)^X damage; X being equal to the Tier of this STATUS. Also, they heal 7 * X HP at the start of their turns and gains +X Strong Chance.",
+            "text": "_ has studied hard for the exam battle!",
+            "aliases": [
+                "astute"
+            ],
+            "weight": 1.0
+        },
+        "avenged": {
+            "title": "AVENGED",
+            "effect": "If a character afflicted with VENGEFUL KO\u2019s the target of the STATUS, the character that afflicted this \u201cVENGEFUL\u201d is afflicted with this status permanently. The afflicted gains +3 HIT and +8 Damage.",
+            "text": "_ feels avenged!",
+            "aliases": [
+                "avenged"
+            ],
+            "weight": 1.0
+        },
+        "blessed": {
+            "title": "BLESSED",
+            "effect": "Can stack up to Tier (XX). The afflicted gains +X Damage Dice Sides and +X/4 HIT and DODGE Dice Sides; X is equal to the Tier. This does not affect Damage Dice with 15 or lower sides.",
+            "text": "_ has a blessing from the gods!",
+            "aliases": [
+                "blessed"
+            ],
+            "weight": 1.0
+        },
+        "bravery": {
+            "title": "BRAVERY",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted can raise their Level of BRAVERY by 1 either by being HIT by a FIGHT, Damaging MAGIC, or Battle ITEM, or by using FIGHT. Apply the following effects based on the afflicted's Level of BRAVERY (max. 10).\n- 0-2: +2 HIT, 0.8x Damage taken.\n- 3-9: +3 HIT, 0.6x Damage taken.\n- 10: +4 HIT, 0.5x Damage taken.",
+            "text": "_ fears nothing!",
+            "aliases": [
+                "bravery"
+            ],
+            "weight": 1.0
+        },
+        "cheery": {
+            "title": "CHEERY",
+            "effect": "The afflicted gains +4 in Counterattack Chance, takes 0.75x Damage, and heals 15 HP at the start of their turns, also, apply the following effects corresponding to how much HP they currently have compared to their MAX HP.\n- 67% or higher: Nothing.\n- 66% - 34%: They heal 30 HP and take 0.6x damage instead.\n- 33% or lower: They heal 45 HP and take 0.4x Damage instead, also they have +4 in Modifier Chance.\n- KO'd: Natural Healing rolls 2d50 instead and they coinflip at the start of their turns; on heads, they automatically use FIGHT on a random target.",
+            "text": "_ feels overly happy!",
+            "aliases": [
+                "cheery"
+            ],
+            "weight": 1.0
+        },
+        "clear-visioned": {
+            "title": "CLEAR-VISIONED",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. Can stack up to Tier (V). The afflicted gains +2 HIT for each tier.",
+            "text": "_ has 20/20 vision!",
+            "aliases": [
+                "clear-visioned"
+            ],
+            "weight": 1.0
+        },
+        "confidence": {
+            "title": "CONFIDENCE",
+            "effect": "The afflicted gains +2 to HIT and DODGE, and also takes 0.75x Damage from FIGHT, Damaging MAGICs, and Battle ITEMs.",
+            "text": "_ is confident that they will come through!",
+            "aliases": [
+                "confidence"
+            ],
+            "weight": 1.0
+        },
+        "cozy": {
+            "title": "COZY",
+            "effect": "The afflicted heals 1d15+10 HP at the start of their turn. If the result was 20+, the afflicted gains +3 HIT and +8 Damage for that turn. If the result was 25, cure this STATUS and afflict the afflicted with JOYFUL.",
+            "text": "_ is as snug as a bug in a rug!",
+            "aliases": [
+                "cozy"
+            ],
+            "weight": 1.0
+        },
+        "determination": {
+            "title": "DETERMINATION",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted can reroll once; this effect resets at the start of the afflicted's turn. Roll a 1d5 at the end of the afflicted's turn as well, and on a 5, the afflicted can choose to take an Extra Turn. The d5 cannot be rerolled, nor can it be rolled on Extra Turns.",
+            "text": "_ is determined!",
+            "aliases": [
+                "determination"
+            ],
+            "weight": 1.0
+        },
+        "dexterous": {
+            "title": "DEXTEROUS",
+            "effect": "The afflicted gains +2 DODGE and +3 Critical Chance, also they Overheal 10 HP at the end of their turn.",
+            "text": "_\u2019s reflexes become quicker!",
+            "aliases": [
+                "dexterous"
+            ],
+            "weight": 1.0
+        },
+        "empowered": {
+            "title": "EMPOWERED",
+            "effect": "The afflicted gains +2 Damage Dice.",
+            "text": "_ is surging with power!",
+            "aliases": [
+                "empowered"
+            ],
+            "weight": 1.0
+        },
+        "faithfulness": {
+            "title": "FAITHFULNESS",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted gains +1 HIT and DODGE, as well as +5 Damage for each Party Member other than themself; if any are KO'd, they gain an additional +1 HIT and DODGE, as well as +5 Damage.",
+            "text": "_ puts their trust in the party.",
+            "aliases": [
+                "faithfulness"
+            ],
+            "weight": 1.0
+        },
+        "fit": {
+            "title": "FIT",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified, nor can its effects be modified. Any Healing the afflicted receives is doubled. If this healing would exceed the afflicted's MAX HP, reduce it by 0.25x and treat it as Overheal (max. 100 HP Overheal); any Healing that already Overheals is unaffected by this.",
+            "text": "_\u2019s metabolism is getting faster!",
+            "aliases": [
+                "fit"
+            ],
+            "weight": 1.0
+        },
+        "focused": {
+            "title": "FOCUSED",
+            "effect": "The afflicted gains +2 HIT and +10 Damage for MAGIC, and also they lose -1 Cooldown.",
+            "text": "_ is focusing on the task at hand!",
+            "aliases": [
+                "focused"
+            ],
+            "weight": 1.0
+        },
+        "furious": {
+            "title": "FURIOUS",
+            "effect": "The afflicted deals double Damage.",
+            "text": "_ is extremely furious!",
+            "aliases": [
+                "furious"
+            ],
+            "weight": 1.0
+        },
+        "glittery": {
+            "title": "GLITTERY",
+            "effect": "Can stack up to Tier (X). X is equal to the Tier of this STATUS. The afflicted Overheals Xd2 HP at the start of their turns and gains +X/3 DODGE. At Tier (VIII) or higher, the afflicted gains 2 rerolls that they can use on any DODGE roll; these rolls refresh at the start of the afflicted's turn. If there is more than one enemy, instead allow them to DODGE any one FIGHT or Damaging MAGIC they would be HIT by, unless it is Guaranteed; this effect also refreshes at the start of the afflicted's turn.",
+            "text": "_ shines bright like a shooting star!",
+            "aliases": [
+                "glittery"
+            ],
+            "weight": 1.0
+        },
+        "guidance": {
+            "title": "GUIDANCE",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. Every other party member besides the afflicted gains +3 HIT, Damage, and DODGE. If the afflicted is the only non-KO'd Party Member, the afflicted gains +2 HIT and +2 DODGE, and also +10 Damage, instead.",
+            "text": "_ is guiding the party to a better outcome.",
+            "aliases": [
+                "guidance"
+            ],
+            "weight": 1.0
+        },
+        "healthy": {
+            "title": "HEALTHY",
+            "effect": "The afflicted gains +2 HIT and DODGE, and also +3 Damage.",
+            "text": "_ feels better about themself for eating something healthy!",
+            "aliases": [
+                "healthy"
+            ],
+            "weight": 1.0
+        },
+        "hope": {
+            "title": "HOPE",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. Can stack up to Tier (X). Apply the following effects depending on how many Tiers the afflicted has:\n- For every 2: +1 HIT and DODGE Dice Sides, and also +1 Critical Chance.\n- For every 3: +1 Devastating Chance.\n- 10 Tiers: They Overheal 25 HP at the end of their turn (max. 100 HP Overheal).\nThe afflicted can gain Tiers whenever the following things happen:\n- If they are HIT by or MISS a FIGHT, MAGIC, or Battle ITEM: +1 Tier.\n- If their turn is skipped: +2 Tiers.\n- If they are KO'd: +3 Tiers.",
+            "text": "_ is full of HOPE!",
+            "aliases": [
+                "hope"
+            ],
+            "weight": 1.0
+        },
+        "hyper": {
+            "title": "HYPER",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. At the start of the afflicted\u2019s turn, heal them for 1d15+10% of their MAX HP. The afflicted also deals 1.5x Damage and has +3 HIT and DODGE, as well as +10 Damage and -1 Cooldown.",
+            "text": "_ can\u2019t stop moving!",
+            "aliases": [
+                "hyper"
+            ],
+            "weight": 1.0
+        },
+        "integrity": {
+            "title": "INTEGRITY",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted gains +2 HIT and DODGE, also they can raise their Level of INTEGRITY by 1 either by being MISSing a FIGHT, Damaging MAGIC, or Battle ITEM, or by ending their turn without using an Action that Damages an Enemy. Apply the following effects based on the afflicted's Level of INTEGRITY (max. 30).\n- Every Level: +2 Damage.\n- Every 5 Levels: +1 HIT and DODGE.",
+            "text": "_'s morals are as high as ever!",
+            "aliases": [
+                "integrity"
+            ],
+            "weight": 1.0
+        },
+        "joyful": {
+            "title": "JOYFUL",
+            "effect": "At the end of their turn, the afflicted can flip a coin; if Heads, they can cure themself of this STATUS to take an Extra Turn.",
+            "text": "_ is filled with joy!",
+            "aliases": [
+                "joyful"
+            ],
+            "weight": 1.0
+        },
+        "justice": {
+            "title": "JUSTICE",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted gains +2 HIT and +5 Damage, also they Heal 0.25x of the Damage they deal.",
+            "text": "_ has a sense of justice!",
+            "aliases": [
+                "justice"
+            ],
+            "weight": 1.0
+        },
+        "kindness": {
+            "title": "KINDNESS",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted gains +3 to DODGE, also they flip a coin at the end of their turn. If Heads, Heal a Party Member for 1d30+10. If tails, Heal the afflicted for 1d15+5 HP. The afflicted is also cured of any Bad STATUSes are immune to Bad and Neutral STATUSes.",
+            "text": "_ is filled with kindness!",
+            "aliases": [
+                "kindness"
+            ],
+            "weight": 1.0
+        },
+        "light": {
+            "title": "LIGHT",
+            "effect": "Can stack up to Tier (V). The afflicted gains +1 HIT, Damage, and DODGE for each Tier.",
+            "text": "_ is enveloped in light!",
+            "aliases": [
+                "light"
+            ],
+            "weight": 1.0
+        },
+        "lucky": {
+            "title": "LUCKY",
+            "effect": "The afflicted gains +3 Success Chance, also their first coinflip per turn, except if for JOYFUL, is always Heads.",
+            "text": "Good fortune shines down upon _!",
+            "aliases": [
+                "lucky"
+            ],
+            "weight": 1.0
+        },
+        "moonlight": {
+            "title": "MOONLIGHT",
+            "effect": "Can stack up to Tier (XX). The afflicted rolls 3dX at the start of their turn and heals that much, X being equal to the amount of tiers this STATUS has, and gains Points corresponding to the results of each die. If this STATUS is at Tier (XXI) or over, roll 3d20 for the Point gain and 3dX for the Healing instead.\n* 1 - 3: +1 Point\n* 4 - 6: +3 Points\n* 7 - 11: +5 Points\n* 12 - 15: +7 Points\n* 16 - 19: +10 Points\n* 20+: +16 Points\nApply the effect corresponding to how many points the afflicted has until the start of their next turn. Points reset at the end of the afflicted's turn.\n* 1 - 4 Points: A=1.\n* 5 - 7 Points: A=2.\n* 8 - 11 Points: A=3, B=5.\n* 12 - 16 Points: A=3, B=10, C=2x.\n* 17 - 22: A=4, B=10, C=2x, D=0.6x.\n* 23 - 27: A=4, B=10, C=3x, D=0.6x. For other Party Members, A=2, B=5, C=1x, D=0.75x.\n* 28 - 35: A=5, B=15, C=3x, D=0.5x. For other Party Members, A=3, B=8, C=2x, D=0.6x.\n* 36 - 47: A=6, B=20, C=3x, D=0.5x. For other Party Members, A=3, B=10, C=3x, D=0.6x.\n* 48: A=7, B=35, C=4x, D=0x; these variables are the same for other Party Members.\nThe variables above corresponds to the following effects:\n- A: Increase in HIT.\n- B: Increase in Damage.\n- C: Modifier to the heal roll.\n- D: Reduction to Damage taken.",
+            "text": "The moon shines good fortune upon _",
+            "aliases": [
+                "moonlight"
+            ],
+            "weight": 1.0
+        },
+        "mossy": {
+            "title": "MOSSY",
+            "effect": "At the start of the afflicted's turn, they heal 1d35 HP. The afflicted also gains +1HIT and DODGE, as well as +3 Damage.",
+            "text": "_ is mossed out!",
+            "aliases": [
+                "mossy"
+            ],
+            "weight": 1.0
+        },
+        "nimble": {
+            "title": "NIMBLE",
+            "effect": "The afflicted can retain their turn twice per turn. Any MAGIC they have with 0 Cooldown, retains turn, and normally wouldn't be able to be casted again that same turn can be casted again.",
+            "text": "_ is fast on their feet!",
+            "aliases": [
+                "nimble"
+            ],
+            "weight": 1.0
+        },
+        "patience": {
+            "title": "PATIENCE",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted gains +3 to DODGE and can Counterattack if they roll a natural 18 or higher on DODGE, even if they are HIT. The afflicted also gains +15 Counterattack Damage and +10 Counterattack Damage Dice Sides.",
+            "text": "_ is patiently waiting for the next move\u2026",
+            "aliases": [
+                "patience"
+            ],
+            "weight": 1.0
+        },
+        "perseverance": {
+            "title": "PERSEVERANCE",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted can reroll once; this effect resets at the start of the afflicted's turn. The first time the afflicted would be KO'd, they aren't KO'd and cannot go under 1 HP until the end of their next turn; this effect refreshes after 3 turns, and if the afflicted was healed to MAX HP, since its previous activation.",
+            "text": "_ is persevering!",
+            "aliases": [
+                "perseverance"
+            ],
+            "weight": 1.0
+        },
+        "purity": {
+            "title": "PURITY",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted is cured of Bad STATUSes upon affliction. The afflicted is IMMUNE to Bad STATUSes. If the afflicted would normally be afflicted with a Bad STATUS that has an Opposite Pair, or was afflicted with one when this STATUS was afflicted, afflict its Opposite Pair onto them if it's a Good STATUS. The afflicted's HIT and DODGE rolls cannot be lowered (the target\u2019s HIT/DODGE still applies) and they gain +2 HIT and DODGE.",
+            "text": "_ is too pure for this world.",
+            "aliases": [
+                "purity"
+            ],
+            "weight": 1.0
+        },
+        "rage": {
+            "title": "RAGE",
+            "effect": "When the afflicted it HIT by a FIGHT, MAGIC, or Battle ITEM, flip a coin for each HIT roll. For each Heads, the afflicted gains 1 Level of RAGE (max. 6). If tails, halve the damage for that HIT. The afflicted gains +2 Damage for each Levels and +1 HIT for every 2 Levels.",
+            "text": "_ feels enraged!",
+            "aliases": [
+                "rage"
+            ],
+            "weight": 1.0
+        },
+        "refreshed": {
+            "title": "REFRESHED",
+            "effect": "Cannot be afflicted on a person with a Bad STATUS if permanent. The afflicted is IMMUNE to Bad STATUSes and is cured of all of them, except STRESSED.",
+            "text": "_ feels better than ever!",
+            "aliases": [
+                "refreshed"
+            ],
+            "weight": 1.0
+        },
+        "relaxed": {
+            "title": "RELAXED",
+            "effect": "Can stack up to Tier (V). The afflicted gains +10% MAX HP per Tier (Max. 100 per Tier), rounded up to the nearest multiple of 5. If this is cured while the afflicted's HP is more than their new MAX HP, keep the difference as Overheal. Good STATUSes on the afflicted last for 1 more turn than usual (do not apply this for STATUSes already on the afflicted).",
+            "text": "_ is calming down...",
+            "aliases": [
+                "relaxed"
+            ],
+            "weight": 1.0
+        },
+        "sad": {
+            "title": "SAD",
+            "effect": "The afflicted takes half damage, but loses -2 DODGE.",
+            "text": "_ is tearing up...",
+            "aliases": [
+                "sad"
+            ],
+            "weight": 1.0
+        },
+        "starlight": {
+            "title": "STARLIGHT",
+            "effect": "Can stack up to Tier (X). For every Tier, the afflicted heals 2 HP at the start of their Turn, takes 1 less Damage, and gains +1 Damage.",
+            "text": "_ feels a divine blessing!",
+            "aliases": [
+                "starlight"
+            ],
+            "weight": 1.0
+        },
+        "strategic": {
+            "title": "STRATEGIC",
+            "effect": "The afflicted flips a coin at the end of their turn; if Heads, they lose -1 to their current Cooldowns.",
+            "text": "_ is strategizing!",
+            "aliases": [
+                "strategic"
+            ],
+            "weight": 1.0
+        },
+        "strong": {
+            "title": "STRONG",
+            "effect": "The afflicted gains +2 HIT and +10 Damage for FIGHT, also they take 0.8x Damage.",
+            "text": "_ is feeling stronger!",
+            "aliases": [
+                "strong"
+            ],
+            "weight": 1.0
+        }
+    },
+    "Neutral STATUSes": {
+        "(soft) burn": {
+            "title": "(SOFT) BURN",
+            "effect": "The afflicted loses -2 HIT, but gains +15 Damage.",
+            "text": "_ is feeling hot",
+            "aliases": [
+                "(soft) burn"
+            ],
+            "weight": 1.0
+        },
+        "abhorrence": {
+            "title": "ABHORRENCE",
+            "effect": "The afflicted loses -5 HIT, but gains +40 Damage.",
+            "text": "_'s disgusted loathing is clouding their mind\u2026",
+            "aliases": [
+                "abhorrence"
+            ],
+            "weight": 1.0
+        },
+        "allergic": {
+            "title": "ALLERGIC",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted is immune to all STATUSes, and any STATUSes they are currently afflicted with, except JOYFUL, cannot be cured. The duration of any STATUSes the afflicted has do not go down at the end of their turns; STATUSes that skip turns (other than COLD and SHOCK) are unaffected by this. If the afflicted is KO'd, cure them of this STATUS.",
+            "text": "_'s immune system is reacting strangely.",
+            "aliases": [
+                "allergic"
+            ],
+            "weight": 1.0
+        },
+        "berserk": {
+            "title": "BERSERK",
+            "effect": "Can stack up to Tier X (10). The afflicted (X*3)+5 Damage, X being the Tier. Whenever the afflicted is HIT, they gain a Tier. At the start of the afflicted's turn, they roll 1dX, X being the number of Tiers. If the roll is equal to or less than half the Tiers, the afflicted can only use FIGHT that turn.",
+            "text": "_ is going berserk!",
+            "aliases": [
+                "berserk"
+            ],
+            "weight": 1.0
+        },
+        "cautious": {
+            "title": "CAUTIOUS",
+            "effect": "Can stack up to Tier V (5). The afflicted gains +X DODGE, but loses -X HIT; X is equal to the Tier.",
+            "text": "_ is feeling a bit cautious.",
+            "aliases": [
+                "cautious"
+            ],
+            "weight": 1.0
+        },
+        "caffeinated": {
+            "title": "CAFFEINATED",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. Double the afflicted's advantages to HIT, Damage, and DODGE. After the afflicted is cured of this STATUS, their next X turns are skipped, also Cooldowns do not go down during this duration; X is equal to the number of turns they were afflicted with this STATUS. If the afflicted is KO'd, cure this STATUS and do not apply the effect to skip turns; if the effect to skip turns is already being applied, then cure the afflicted of it.",
+            "text": "_ is on a caffeine rush!",
+            "aliases": [
+                "caffeinated"
+            ],
+            "weight": 1.0
+        },
+        "challenged": {
+            "title": "CHALLENGED",
+            "effect": "The afflicted's DODGE is replaced with BLOCK. BLOCK roll 1d20s and applies the following result when the afflicted is targeted for a FIGHT, Damaging MAGIC, or Battle ITEM. This roll cannot be modified, unless the afflicted already has their DODGE replaced with BLOCK, in which case they lose -5 to the roll but their FIGHT, Damaging MAGICs, and Battle ITEMs are guaranteed to HIT.\n- If a 1- was rolled: The afflicted takes double Damage.\n- If a 2-5 was rolled: The afflicted takes normal Damage.\n- If a 6-10 was rolled: The afflicted takes 0.75x Damage.\n- If a 11-15 was rolled: The afflicted takes 0.5x Damage.\n- If a 16-18 was rolled: The afflicted takes 0.25x Damage.\n- If a 19 was rolled: The afflicted takes no Damage.\n- If a 20 was rolled: The afflicted takes no Damage and Counterattacks.",
+            "text": "_ accepts the challenge!",
+            "aliases": [
+                "challenged"
+            ],
+            "weight": 1.0
+        },
+        "chaotic": {
+            "title": "CHAOTIC",
+            "effect": "Roll a 1d9 at the start of the target\u2019s turn and apply the effect that matches the result.\n1 - The afflicted takes 5d25 Damage; this Damage cannot be reduced and ignores Shields. (\u201cA truck came and ran \\_ over!!!\u201d)\n2 - The afflicted gains +2 to the current Cooldown in a random MAGIC; if it isn't on Cooldown, set it to 2 turns of Cooldown. (\u201c\\_ is seeing SWIRLS!\u201d)\n3 - Until the start of the afflicted's next turn, they lose -5 HIT, Damage, and DODGE Dice Sides. (\u201c\\_ was confused on which die to roll!\u201d)\n4 - Afflict the afflicted with a random Bad STATUS for 3 turns. (\u201cA curse fell upon \\_.\u201d)\n5 - Afflict the afflicted with a random Neutral STATUS for 3 turns. (\u201cPure Chaos rains down upon \\_.\u201d)\n6 - Afflict the afflicted with a random Good STATUS for 3 turns. (\u201cA blessing fell upon \\_.\u201d)\n7 - Until the start of the afflicted's next turn, they lose -5 HIT, Damage, and DODGE Dice Sides. (\u201c\\_ rolls a bigger die!\u201d)\n8 - The afflicted loses -2 to the current Cooldown in a random MAGIC on Cooldown; if they have no MAGICs on Cooldown, reduce the Cooldown of the next MAGIC they cast by -2. (\u201c\\_\u2018s vision is PHENOMENAL!\u201d)\n9 - Overheal the afflicted for 5d25 HP. (\u201cAn angel came down and healed \\_!\u201d)",
+            "text": "_ woke up today and chose CHAOS.",
+            "aliases": [
+                "chaotic"
+            ],
+            "weight": 1.0
+        },
+        "concentrated": {
+            "title": "CONCENTRATED",
+            "effect": "The afflicted deals half Damage, but their Cooldowns go down by 2 instead of 1 at the end of their turns.",
+            "text": "_ is too concentrated on something else...",
+            "aliases": [
+                "concentrated"
+            ],
+            "weight": 1.0
+        },
+        "courageous": {
+            "title": "COURAGEOUS",
+            "effect": "The afflicted has +4 Critical Chance, +2 Devastating Chance,deals Celestial (4x) Damage on HIT roll of 28+, and has +10 Damage, but they take 1.5x Damage.",
+            "text": "_ is standing strong!",
+            "aliases": [
+                "courageous"
+            ],
+            "weight": 1.0
+        },
+        "daylight/moonshine": {
+            "title": "DAYLIGHT/MOONSHINE",
+            "effect": "Can stack up to Tier X (10). At the start of the afflicted\u2019s turns, they flip a coin. If Heads, they gain +X/2 HIT and +X Damage for that turn, and if tails, they instead lose -X/2 HIT and -X Damage for that turn; X is equal to the Tier.",
+            "text": "_ is blessed by the sun!/cursed by the moon!",
+            "aliases": [
+                "daylight/moonshine"
+            ],
+            "weight": 1.0
+        },
+        "defensive": {
+            "title": "DEFENSIVE",
+            "effect": "The afflicted takes and deals half Damage.",
+            "text": "_ is going on the defensive!",
+            "aliases": [
+                "defensive"
+            ],
+            "weight": 1.0
+        },
+        "desperate": {
+            "title": "DESPERATE",
+            "effect": "When the afflicted's HP is above half of their MAX HP, they lose -3 in Critical and Devastating Chance, as well as -2 HIT, Damage, and DODGE. When the afflicted is at or below half their MAX HP, reverse the disadvantages.",
+            "text": "_ is getting desperate!",
+            "aliases": [
+                "desperate"
+            ],
+            "weight": 1.0
+        },
+        "\u011f\u0105m\u025b\\-break": {
+            "title": "\u011e\u0104M\u0190-BREAK",
+            "effect": "At the start of the afflicted\u2019s turn, roll 1d15, then apply the result to the afflicted.\n1 - The afflicted takes Damage equal to half of their MAX HP and their turn is skipped. (\"Part of \\_'s code got deleted...\")\n2 - The afflicted's next roll is Guaranteed to be the lowest result and the afflicted cannot have an advantage to this roll. (\"\\_ got softlocked...\")\n3 - The afflicted's next DODGE roll is Guaranteed to fail and they lose -4 in Critical Chance this turn. (\"\\_ feels disoriented...\")\n4 - For this turn, the afflicted takes 7/5 Damage and loses -5 HIT, Damage, and DODGE. (\"\\_ became as small as a bug...\")\n5 - The afflicted gains +3 Cooldown in a random MAGIC. (\"\\_'s MAGIC is buffering...\")\n6 - The afflicted is afflicted with a random doubled Bad STATUS for 3 turns. (\"\\_ was afflicted with a nasty virus...\")\n7 - Reroll. (\"math.random(1, 15) was rerolled for \\_.\")\n8 - The afflicted is afflicted with a random doubled Neutral STATUS for 3 turns. (\"\\_ is experiencing an anomaly\u2026?\")\n9 - Reroll and coinflip before rerolling. On Heads, add +2 to this roll. On Tails, subtract -2 to this roll. (\"\\_'s probabilities were altered...?\")\n10 - The afflicted is afflicted with a random doubled Good STATUS for 3 turns. (\"\\_'s corruption was in their favor!\")\n11 - The afflicted loses -3 Cooldown in a random MAGIC. (\"\\_'s MAGIC was accelerated!\")\n12 - For this turn, the afflicted takes 0.6x Damage and gains +5 HIT, Damage, and DODGE rolls. (\"The corruption formed a shield around \\_!\")\n13 - The afflicted's next DODGE roll is Guaranteed to succeed, even if the roll was against Guaranteed HIT, and they have a +4 in Critical Chance this turn. (\"\\_'s DODGE was overwritten!\")\n14 - The afflicted's next roll is Guaranteed to be the highest result and the afflicted cannot have a disadvantage to this roll. (\"\\_ is getting a perfect result!\")\n15 - The afflicted heals equal to half of their MAX HP and they take another turn after this turn. (\"\\_ activated debug mode.\")",
+            "text": "_ is glitching chaotically! You can see half of their body over there!",
+            "aliases": [
+                "\u011f\u0105m\u025b-break",
+                "game-break"
+            ],
+            "weight": 1.0
+        },
+        "gl\u012ftch\u0113d": {
+            "title": "GL\u012eTCH\u0112D",
+            "effect": "At the start of the afflicted\u2019s turn, roll 1d6, then apply the result to the afflicted; if the afflicted is taking an Extra Turn, do not roll the d6 or lower the duration of this STATUS for that turn.\n1. Skip the afflicted's turn. (\u201c\\_ feels as stiff as a statue\u2026\u201d)\n2. The afflicted's next d20 roll is treated as a natural 1. (\u201c\\_ is clumsier than ever!\u201d)\n3. Nothing. (\u201cHuh\u2026? Just a silly bird?\u201d)\n4. Reroll. (\u201cNo fun at all! I demand a reroll!\u201d)\n5. The afflicted's next d20 roll is treated as a natural 20. (\u201c\\_ feels extra focused!\u201d)\n6. The afflicted takes an Extra Turn after their current one. (\u201c\\_ feels invigorated!\u201d)",
+            "text": "_ is glitching out!",
+            "aliases": [
+                "gl\u012ftch\u0113d",
+                "glitched"
+            ],
+            "weight": 1.0
+        },
+        "grinding": {
+            "title": "GRINDING",
+            "effect": "Can stack up to Tier X (10). The afflicted has -0.5x in the multiplier for HIT; increase this amount by +0.2x for each Tier. When the afflicted takes damage, they flip a coin; if Heads, the afflicted gains a Tier of this STATUS; when the afflicted has their turn skipped, they gain 2 Tiers of this STATUS. If the afflicted MISSes a FIGHT or Damaging MAGIC, they lose 1 Tier; if they are KO'd, they lose 3 instead.",
+            "text": "_ is getting impatient.",
+            "aliases": [
+                "grinding"
+            ],
+            "weight": 1.0
+        },
+        "mind-broken": {
+            "title": "MIND-BROKEN",
+            "effect": "The afflicted flips a coin at the start of their turn, unless their last turn was skipped by this STATUS. If Heads, nothing happens; if Tails, the afflicted has their turn skipped, however they deal double Damage during their next turn.",
+            "text": "Seems like _ can\u2019t think straight!",
+            "aliases": [
+                "mind-broken"
+            ],
+            "weight": 1.0
+        },
+        "neutral": {
+            "title": "NEUTRAL",
+            "effect": "The afflicted gains +5 HIT and Damage, and takes 0.8x Damage, but loses -5 DODGE.",
+            "text": "_ has mixed emotions...",
+            "aliases": [
+                "neutral"
+            ],
+            "weight": 1.0
+        },
+        "nonchalant": {
+            "title": "NONCHALANT",
+            "effect": "The afflicted's HIT, Damage, and DODGE stay at their natural values, also they also ignore Enemy DODGE; enemy HIT still applies.",
+            "text": "_ is staring blankly\u2026",
+            "aliases": [
+                "nonchalant"
+            ],
+            "weight": 1.0
+        },
+        "vengeful": {
+            "title": "VENGEFUL",
+            "effect": "The afflicted gains +4 HIT and +20 Damage rolls, but the afflicted can only target 1 Enemy; if this STATUS was afflicted randomly, target a random Enemy for this effect. If that Enemy is KO'd, the afflicted flips a coin at the end of their turn; if Heads, cure them of this STATUS. If there is only 1 Enemy, cure this STATUS once the afflicted deals 300 or more total Damage while afflicted, unless this STATUS was afflicted permanently.",
+            "text": "_ is vengeful!",
+            "aliases": [
+                "vengeful"
+            ],
+            "weight": 1.0
+        }
+    },
+    "Bad STATUSes": {
+        "(full) burn": {
+            "title": "(FULL) BURN",
+            "effect": "Can stack up to Tier X (10). The afflicted takes X*5 Damage at the start of their turn and loses -X/2 HIT; X is equal to the Tier.",
+            "text": "_ is consumed by flames!",
+            "aliases": [
+                "(full) burn"
+            ],
+            "weight": 1.0
+        },
+        "(hard) burn": {
+            "title": "(HARD) BURN",
+            "effect": "Afflicted takes 10 Damage at the start of their turn, and loses -3 HIT; if HIT was rolled to afflict this STATUS, the Damage is modified by multiplier of the HIT.",
+            "text": "_ is on fire!",
+            "aliases": [
+                "(hard) burn"
+            ],
+            "weight": 1.0
+        },
+        "absent-minded": {
+            "title": "ABSENT-MINDED",
+            "effect": "If the afflicted has FIGHT, MAGIC, ITEM, and DEFEND, they roll 1d4 at the start of their turn; the corresponding Button cannot be used until the start of the afflicted's next turn.\n- 1: FIGHT\n- 2: MAGIC\n- 3: ITEM\n- 4: DEFEND\nIf the afflicted is missing one of the above Buttons, they instead roll YdX and lock those corresponding Actions until the start of their next turn; X is equal to their current amount of available Actions and Y is equal to X/4 (min. 1). The use of an ITEM counts as a single Action.",
+            "text": "_ forgot how to think\u2026",
+            "aliases": [
+                "absent-minded"
+            ],
+            "weight": 1.0
+        },
+        "bleed": {
+            "title": "BLEED",
+            "effect": "Can stack up to Tier XX (20). The afflicted takes X*2 Damage at the start of their turn; X is equal to the Tier. If the afflicted heals, cure them of up to 5 Tiers of this STATUS.",
+            "text": "_ is feeling woozy\u2026",
+            "aliases": [
+                "bleed"
+            ],
+            "weight": 1.0
+        },
+        "blindness": {
+            "title": "BLINDNESS",
+            "effect": "Can stack up to Tier V (5). The afflicted loses -2 HIT for each tier.",
+            "text": "_ is unable to see!",
+            "aliases": [
+                "blindness"
+            ],
+            "weight": 1.0
+        },
+        "brainless": {
+            "title": "BRAINLESS",
+            "effect": "The afflicted flips a coin at the end of their turns; if Tails, their Cooldowns do not go down that turn.",
+            "text": "_ is having trouble thinking\u2026",
+            "aliases": [
+                "brainless"
+            ],
+            "weight": 1.0
+        },
+        "brittle": {
+            "title": "BRITTLE",
+            "effect": "Can stack up to Tier (XX). Apply the following effects corresponding to the afflicted's current Tier; this value is also X.\n- Tier (I)+: The afflicted takes (X/4+1)d10 Damage at the end of their turns.\n- Tier (V)+: Any effects that make the afflicted take Damage at the start or end of their turn deal +(0.25*X/5) Damage.\n- Tier (X)+: The afflicted deals 0.75x Damage.\n- Tier (XV)+: The afflicted takes 1.25x Damage. If any effects outside of this STATUS deal Damage to the afflicted during their turn and this STATUS is at XX or higher, the afflicted takes 1.75x Damage until the start of their next turn.",
+            "text": "_'s bones became severely weak\u2026",
+            "aliases": [
+                "brittle"
+            ],
+            "weight": 1.0
+        },
+        "charmed": {
+            "title": "CHARMED",
+            "effect": "The afflicted cannot target the character that afflicted them with CHARMED for FIGHT, Damaging MAGICs, or Battle ITEMs. If this STATUS was afflicted randomly, the character the afflicted cannot target is a random Enemy.",
+            "text": "_ is in love with the enemy!",
+            "aliases": [
+                "charmed"
+            ],
+            "weight": 1.0
+        },
+        "clumsy": {
+            "title": "CLUMSY",
+            "effect": "The afflicted loses -2 DODGE and Critical Chance. If the afflicted is HIT, apply the following effects depending on the multiplier from HIT.\n- Normal or Strong: Deal +0.5x Damage.\n- Critical or higher: Deal +1x Damage.",
+            "text": "_ has two left feet...",
+            "aliases": [
+                "clumsy"
+            ],
+            "weight": 1.0
+        },
+        "cold": {
+            "title": "COLD",
+            "effect": "The afflicted takes 1d15+10 Damage at the start of their turn. If the result was 20+, skip their turn. If the result was 25, cure this STATUS and afflict the afflicted with FROZEN for the current duration of this STATUS.",
+            "text": "_ is a bit chilly\u2026",
+            "aliases": [
+                "cold"
+            ],
+            "weight": 1.0
+        },
+        "corrupted": {
+            "title": "CORRUPTED",
+            "effect": "The afflicted takes Damage equal to the combined digits in their HP x3 at the start of their turns (Ex. 142 HP takes 21 Damage), also they deal 0.8x Damage.",
+            "text": "_'s data is corrupting...",
+            "aliases": [
+                "corrupted"
+            ],
+            "weight": 1.0
+        },
+        "cursed": {
+            "title": "CURSED",
+            "effect": "Can stack up to Tier XX (20). The afflicted loses -X Damage Dice Sides and -X/4 HIT and DODGE Dice Sides; X is equal to the Tier. Does not affect Damage Dice with 15 or less sides.",
+            "text": "_ was afflicted with a curse\u2026",
+            "aliases": [
+                "cursed"
+            ],
+            "weight": 1.0
+        },
+        "dark": {
+            "title": "DARK",
+            "effect": "Can stack up to Tier (V). The afflicted loses -1 HIT, Damage, and DODGE for each Tier.",
+            "text": "_\u2019s mind is shrouded by darkness!",
+            "aliases": [
+                "dark"
+            ],
+            "weight": 1.0
+        },
+        "demoralized": {
+            "title": "DEMORALIZED",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted takes double Damage.",
+            "text": "_ is just... Not into it...",
+            "aliases": [
+                "demoralized"
+            ],
+            "weight": 1.0
+        },
+        "despair": {
+            "title": "DESPAIR",
+            "effect": "Can stack up to Tier (X). Apply the following effects depending on how many Tiers the afflicted has:\n- For every 2: -1 HIT and DODGE Dice Sides, and also -1 Critical Chance.\n- For every 3: -1 Devastating Chance.\n- 10 Tiers: They take 25 unreducable Damage at the end of their turn.\nThe afflicted can gain Tiers whenever the following things happen:\n- If they are HIT by or MISS a FIGHT, MAGIC, or Battle ITEM: +1 Tier.\n- If their turn is skipped: +2 Tiers.\n- If they are KO'd: +3 Tiers.",
+            "text": "_ is overtaken by DESPAIR!",
+            "aliases": [
+                "despair"
+            ],
+            "weight": 1.0
+        },
+        "disturbed": {
+            "title": "DISTURBED",
+            "effect": "Can stack up to Tier (V). The afflicted loses -10% MAX HP per Tier (Max. 100 per Tier), rounded down to the nearest multiple of 5. If this is afflicted while the afflicted's HP is more than their new MAX HP, set their HP to their new MAX HP. Good STATUSes on the afflicted last for 1 less turn than usual (do not apply this for STATUSes already on the afflicted).",
+            "text": "_ is trying to keep it together...",
+            "aliases": [
+                "disturbed"
+            ],
+            "weight": 1.0
+        },
+        "dread": {
+            "title": "DREAD",
+            "effect": "The afflicted loses -1 HIT, -2 DODGE, -5 Damage, and takes Xd15 Damage at the start of their turns. X is equal to the amount of times the afflicted was HIT since being afflicted with this STATUS; at the end of the afflicted's 3rd turn since being afflicted or last resetting X, set X to 0.",
+            "text": "_ has an overwhelming sense of DREAD...",
+            "aliases": [
+                "dread"
+            ],
+            "weight": 1.0
+        },
+        "fear": {
+            "title": "FEAR",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. The afflicted cannot use MAGIC, also their DEFEND only makes them take 0.75x Damage.",
+            "text": "_ is shivering their timbers!",
+            "aliases": [
+                "fear"
+            ],
+            "weight": 1.0
+        },
+        "foggy": {
+            "title": "FOGGY",
+            "effect": "The afflicted loses -3 HIT to MAGIC and gains +1 to Cooldown. The afflicted flips a coin at the end of their turns. If Tails, they roll 1dX; the corresponding MAGIC's Cooldown does not go down this turn. X is equal to how many MAGICs the afflicted has currently on Cooldown.",
+            "text": "_'s mind is clouded...",
+            "aliases": [
+                "foggy"
+            ],
+            "weight": 1.0
+        },
+        "frozen": {
+            "title": "FROZEN",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. If the afflicted does not have a Concentration-based Action, then their turn is skipped; if they do, they can either use it or skip their turn. ITEMs cannot be used on the afflicted, also they take 25 Damage at the end of their turns.",
+            "text": "_ is frozen solid!",
+            "aliases": [
+                "frozen"
+            ],
+            "weight": 1.0
+        },
+        "inferno": {
+            "title": "INFERNO",
+            "effect": "Can stack up to Tier (X). The afflicted takes X Damage at the start and end of every turn; X is equal to the Tier of this STATUS. If the afflicted HIT an enemy on their turn, double the Damage this deals until the beginning of their next turn.",
+            "text": "_ feels the endless infernos gaze upon them.",
+            "aliases": [
+                "inferno"
+            ],
+            "weight": 1.0
+        },
+        "nauseous": {
+            "title": "NAUSEOUS",
+            "effect": "The afflicted heals half HP, also ITEMs cannot be used on them.",
+            "text": "_ feels like they are gonna throw up\u2026",
+            "aliases": [
+                "nauseous"
+            ],
+            "weight": 1.0
+        },
+        "paralyzed": {
+            "title": "PARALYZED",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. If the afflicted does not have a Concentration-based Action, then their turn is skipped; if they do, they can either use it or skip their turn. HIT rolls against the afflicted are Guaranteed to HIT, also the afflicted's DODGE becomes neutral (+0). The afflicted's Cooldowns can't go down.",
+            "text": "_ is completely immobile!",
+            "aliases": [
+                "paralyzed"
+            ],
+            "weight": 1.0
+        },
+        "petrified": {
+            "title": "PETRIFIED",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. At the start of the afflicted's turn, they roll 1d4+X and apply the following effect based on the result; X is equal to how many times the d4 was rolled since being afflicted.\n- Lower than 4: If the afflicted does not have a Concentration-based Action, then their turn is skipped; if they do, they can either use it or skip their turn.\n- 4 or higher: Cure the afflicted of this STATUS, then afflict them with 3*X Tiers of BRITTLE for 3 turns; X is equal to the result of the roll.",
+            "text": "_ has turned to stone!",
+            "aliases": [
+                "petrified"
+            ],
+            "weight": 1.0
+        },
+        "sapped": {
+            "title": "SAPPED",
+            "effect": "Damage and HIT roll debuff varies with what was used to afflict it. If it does not specify or was afflicted randomly, roll 1d5 for HIT disadvantage. The Damage is Xd15, X being the result of the 1d5 roll.",
+            "text": "_ is intoxicated by the sticky sap!",
+            "aliases": [
+                "sapped"
+            ],
+            "weight": 1.0
+        },
+        "shock": {
+            "title": "SHOCK",
+            "effect": "Damage Dice vary depending on the source of affliction. If it does not specify or was afflicted randomly, roll 1d5 for Damage\nDice; this becomes X. The target takes Xd10 damage at the start of their turns. The afflicted takes the result of each Die and gains Points based on them.\n* 1 - 3: Nothing\n* 4 - 6: +1 \u201cShock\u201d Point\n* 7 - 9: +2 \u201cShock\u201d Points\n* 10: +3 \u201cShock\u201d Points.\nApply the effect corresponding to how many points the afflicted has until the start of their next turn. Points reset at the end of the afflicted's turn.\n* 0 or 1: Nothing.\n* 2 or 3: A=-2\n* 4 or 5: A=-3, the afflicted takes the Damage from the Damage roll again.\n* 6 or 7: A=-3, B=3d30, C=-3\n* 8 or 9: A=-4, B=3d30, C=-4\n* 10 - 12: A=-4, B=4d30, C=-4, D=1.3x\n* 13 or 14: A=-5, B=6d30, C=-5, D=2x, skip the afflicted's next turn if the Point total was 14.\n* 15+: A=-6, B=8d30, C=-6, D=2x, skip the afflicted's next turn.\nThe variables above corresponds to the following effects:\n- A: Decrease to HIT.\n- B: Additional Damage taken from the STATUS.\n- C: Decrease to Damage and DODGE.\n- D: Additional Damage taken from FIGHT, Damaging MAGIGs, and Battle ITEMs.",
+            "text": "_ feels a jolt\u2026",
+            "aliases": [
+                "shock"
+            ],
+            "weight": 1.0
+        },
+        "sick": {
+            "title": "SICK",
+            "effect": "The afflicted loses -2 HIT and DODGE, as well as -3 Damage.",
+            "text": "_ may have the flu\u2026",
+            "aliases": [
+                "sick"
+            ],
+            "weight": 1.0
+        },
+        "sluggish": {
+            "title": "SLUGGISH",
+            "effect": "Whenever the afflicted uses an Action, that Action happens at the end of the target's next turn. If there are multiple targets, apply it at the end of the turn of the one closest to the afflicted in Turn Order.",
+            "text": "_\u2019s thought process slowed down\u2026",
+            "aliases": [
+                "sluggish"
+            ],
+            "weight": 1.0
+        },
+        "starstruck": {
+            "title": "STARSTRUCK",
+            "effect": "The afflicted loses -5 HIT and Damage, but gains +3 DODGE.",
+            "text": "_ feels a bit awkward about fighting the enemy\u2026",
+            "aliases": [
+                "starstruck"
+            ],
+            "weight": 1.0
+        },
+        "stiff": {
+            "title": "STIFF",
+            "effect": "The afflicted cannot retain their turn.",
+            "text": "_'s workflow was ruined.",
+            "aliases": [
+                "stiff"
+            ],
+            "weight": 1.0
+        },
+        "strange": {
+            "title": "STRANGE",
+            "effect": "Every time the afflicted uses FIGHT, a Damaging MAGIC, or a Battle ITEM, they flip a coin; if Tails, the target becomes a random Party Member.",
+            "text": "_ feels a bit strange\u2026",
+            "aliases": [
+                "strange"
+            ],
+            "weight": 1.0
+        },
+        "stressed": {
+            "title": "STRESSED",
+            "effect": "Cures the afflicted of all current Good STATUSes. The afflicted is IMMUNE to Good STATUSes, other than REFRESHED.",
+            "text": "_ is too stressed from the situation!",
+            "aliases": [
+                "stressed"
+            ],
+            "weight": 1.0
+        },
+        "stunned": {
+            "title": "STUNNED",
+            "effect": "Cannot be chosen by effects that afflict chosen STATUSes, unless specified. At the start of the afflicted\u2019s turn, flip a coin; if Tails, skip that turn.",
+            "text": "_ was too stunned to do anything!",
+            "aliases": [
+                "stunned"
+            ],
+            "weight": 1.0
+        },
+        "terrified": {
+            "title": "TERRIFIED",
+            "effect": "The afflicted flips a coin at the end of their turn; if Tails, they lose -5 DODGE until the start of their next turn.",
+            "text": "_ was scared half to death!",
+            "aliases": [
+                "terrified"
+            ],
+            "weight": 1.0
+        },
+        "tipsy": {
+            "title": "TIPSY",
+            "effect": "Halve the afflicted's HIT, Damage, and DODGE advantages.",
+            "text": "_ had a bit too much alcohol\u2026",
+            "aliases": [
+                "tipsy"
+            ],
+            "weight": 1.0
+        },
+        "tired": {
+            "title": "TIRED",
+            "effect": "The afflicted loses -3 HIT, Damage, and DODGE.",
+            "text": "_ is feeling a bit sleepy\u2026",
+            "aliases": [
+                "tired"
+            ],
+            "weight": 1.0
+        },
+        "tranced": {
+            "title": "TRANCED",
+            "effect": "Can stack up to Tier V (5). For each Tier, the afflicted takes 7 Damage at the start of their turn and loses -1 HIT and DODGE.",
+            "text": "_ has fallen into a trance\u2026",
+            "aliases": [
+                "tranced"
+            ],
+            "weight": 1.0
+        },
+        "unaware": {
+            "title": "UNAWARE",
+            "effect": "HIT rolls against the afflicted are always Guaranteed.",
+            "text": "_ is not paying attention!",
+            "aliases": [
+                "unaware"
+            ],
+            "weight": 1.0
+        },
+        "unlucky": {
+            "title": "UNLUCKY",
+            "effect": "The afflicted loses -3 Success Chance, also their first coinflip per turn is always Tails.",
+            "text": "It\u2019s a bad day for _!",
+            "aliases": [
+                "unlucky"
+            ],
+            "weight": 1.0
+        },
+        "weakened": {
+            "title": "WEAKENED",
+            "effect": "For every 15 Damage the afflicted takes, they take 1 more Damage; this scales with the multiplier of any HIT roll that dealt the Damage (if there wasn't a HIT roll, treat it as 1x). The afflicted also deals 0.8x Damage.",
+            "text": "_ feels very weak\u2026",
+            "aliases": [
+                "weakened"
+            ],
+            "weight": 1.0
+        }
+    }
+}

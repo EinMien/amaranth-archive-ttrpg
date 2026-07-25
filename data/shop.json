@@ -1,0 +1,1197 @@
+{
+    "Food": {
+        "apple": {
+            "name": "Apple",
+            "price": 40,
+            "locked": false
+        },
+        "assorted chocolates": {
+            "name": "Assorted Chocolates",
+            "price": 65,
+            "locked": false
+        },
+        "assorted gummies": {
+            "name": "Assorted Gummies",
+            "price": 50,
+            "locked": false
+        },
+        "astelava cake": {
+            "name": "Astelava Cake",
+            "price": 225,
+            "locked": false
+        },
+        "baked alaska": {
+            "name": "Baked Alaska",
+            "price": 100,
+            "locked": false
+        },
+        "banana": {
+            "name": "Banana",
+            "price": 80,
+            "locked": true
+        },
+        "banana-milk chocolate cake": {
+            "name": "Banana-Milk Chocolate Cake",
+            "price": 100,
+            "locked": false
+        },
+        "banana pudding": {
+            "name": "Banana Pudding",
+            "price": 110,
+            "locked": false
+        },
+        "banana taffy": {
+            "name": "Banana Taffy",
+            "price": 100,
+            "locked": false
+        },
+        "banana tiramisu": {
+            "name": "Banana Tiramisu",
+            "price": 110,
+            "locked": false
+        },
+        "beef jerky": {
+            "name": "Beef Jerky",
+            "price": 120,
+            "locked": false
+        },
+        "black licorice": {
+            "name": "Black Licorice",
+            "price": 75,
+            "locked": false
+        },
+        "blackout berry": {
+            "name": "Blackout Berry",
+            "price": 65,
+            "locked": true
+        },
+        "blueberry-white chocolate cake": {
+            "name": "Blueberry-White Chocolate Cake",
+            "price": 100,
+            "locked": false
+        },
+        "butterscotch-cinnamon pie": {
+            "name": "Butterscotch-Cinnamon Pie",
+            "price": 50,
+            "locked": false
+        },
+        "candy": {
+            "name": "Candy",
+            "price": 35,
+            "locked": false
+        },
+        "candy corn": {
+            "name": "Candy Corn",
+            "price": 130,
+            "locked": false
+        },
+        "cherry bomb": {
+            "name": "Cherry Bomb",
+            "price": 55,
+            "locked": true
+        },
+        "chocolate spikes": {
+            "name": "Chocolate Spikes",
+            "price": 60,
+            "locked": false
+        },
+        "chocolate sylna cookie": {
+            "name": "Chocolate Sylna Cookie",
+            "price": 30,
+            "locked": false
+        },
+        "chocolate wafer": {
+            "name": "Chocolate Wafer",
+            "price": 120,
+            "locked": false
+        },
+        "clay": {
+            "name": "Clay",
+            "price": 150,
+            "locked": false
+        },
+        "clubs sandwich": {
+            "name": "Clubs Sandwich",
+            "price": 85,
+            "locked": true
+        },
+        "cranberry": {
+            "name": "Cranberry",
+            "price": 70,
+            "locked": false
+        },
+        "dark candy": {
+            "name": "Dark Candy",
+            "price": 55,
+            "locked": false
+        },
+        "dark chocolate bar": {
+            "name": "Dark Chocolate Bar",
+            "price": 70,
+            "locked": false
+        },
+        "dice cake": {
+            "name": "Dice Cake",
+            "price": 85,
+            "locked": false
+        },
+        "dust bunny": {
+            "name": "Dust Bunny",
+            "price": 115,
+            "locked": false
+        },
+        "eternal hibachi": {
+            "name": "Eternal Hibachi",
+            "price": 45,
+            "locked": false
+        },
+        "fast food": {
+            "name": "Fast Food",
+            "price": 70,
+            "locked": true
+        },
+        "feisty slider": {
+            "name": "Feisty Slider",
+            "price": 90,
+            "locked": false
+        },
+        "fettuccine alfredo": {
+            "name": "Fettuccine Alfredo",
+            "price": 100,
+            "locked": false
+        },
+        "fish sticks": {
+            "name": "Fish Sticks",
+            "price": 125,
+            "locked": false
+        },
+        "fruitcake": {
+            "name": "Fruitcake",
+            "price": 85,
+            "locked": false
+        },
+        "fruity parfait": {
+            "name": "Fruity Parfait",
+            "price": 45,
+            "locked": false
+        },
+        "garnish": {
+            "name": "Garnish",
+            "price": 70,
+            "locked": false
+        },
+        "ghost pepper": {
+            "name": "Ghost Pepper",
+            "price": 15,
+            "locked": false
+        },
+        "glass": {
+            "name": "Glass",
+            "price": 35,
+            "locked": false
+        },
+        "grape": {
+            "name": "Grape",
+            "price": 35,
+            "locked": false
+        },
+        "grapefruit": {
+            "name": "Grapefruit",
+            "price": 70,
+            "locked": false
+        },
+        "grass cake": {
+            "name": "Grass Cake",
+            "price": 35,
+            "locked": false
+        },
+        "gravity granola": {
+            "name": "Gravity Granola",
+            "price": 65,
+            "locked": false
+        },
+        "grilled cheese": {
+            "name": "Grilled Cheese",
+            "price": 115,
+            "locked": false
+        },
+        "gunpowder": {
+            "name": "Gunpowder",
+            "price": 125,
+            "locked": false
+        },
+        "hamburger": {
+            "name": "Hamburger",
+            "price": 75,
+            "locked": false
+        },
+        "honey bun": {
+            "name": "Honey Bun",
+            "price": 130,
+            "locked": false
+        },
+        "hotel mix": {
+            "name": "Hotel Mix",
+            "price": 100,
+            "locked": false
+        },
+        "ice cream": {
+            "name": "Ice Cream",
+            "price": 100,
+            "locked": false
+        },
+        "inedible assortments": {
+            "name": "Inedible Assortments",
+            "price": 70,
+            "locked": false
+        },
+        "kitty-paw biscuits": {
+            "name": "Kitty-Paw Biscuits",
+            "price": 75,
+            "locked": false
+        },
+        "lasagna": {
+            "name": "Lasagna",
+            "price": 70,
+            "locked": false
+        },
+        "legendary hero": {
+            "name": "Legendary Hero",
+            "price": 60,
+            "locked": false
+        },
+        "lettuce": {
+            "name": "Lettuce",
+            "price": 15,
+            "locked": false
+        },
+        "light candy": {
+            "name": "Light Candy",
+            "price": 125,
+            "locked": false
+        },
+        "melon": {
+            "name": "Melon",
+            "price": 45,
+            "locked": false
+        },
+        "milk chocolate bar": {
+            "name": "Milk Chocolate Bar",
+            "price": 70,
+            "locked": false
+        },
+        "mint chocolate bar": {
+            "name": "Mint Chocolate Bar",
+            "price": 80,
+            "locked": false
+        },
+        "mint bowl": {
+            "name": "Mint Bowl",
+            "price": 80,
+            "locked": false
+        },
+        "moon pie": {
+            "name": "Moon Pie",
+            "price": 60,
+            "locked": false
+        },
+        "moss": {
+            "name": "Moss",
+            "price": 55,
+            "locked": false
+        },
+        "moss ball": {
+            "name": "Moss Ball",
+            "price": 150,
+            "locked": false
+        },
+        "nanner": {
+            "name": "Nanner",
+            "price": 90,
+            "locked": true
+        },
+        "orange": {
+            "name": "Orange",
+            "price": 90,
+            "locked": false
+        },
+        "peanut-butter wafer": {
+            "name": "Peanut-Butter Wafer",
+            "price": 120,
+            "locked": false
+        },
+        "pizza": {
+            "name": "Pizza",
+            "price": 360,
+            "locked": false
+        },
+        "poisoned cake": {
+            "name": "Poisoned Cake",
+            "price": 100,
+            "locked": false
+        },
+        "poppo cake": {
+            "name": "Poppo Cake",
+            "price": 60,
+            "locked": false
+        },
+        "pumpkin chocolate": {
+            "name": "Pumpkin Chocolate",
+            "price": 100,
+            "locked": false
+        },
+        "pure cacao": {
+            "name": "Pure Cacao",
+            "price": 70,
+            "locked": false
+        },
+        "rabbit stew": {
+            "name": "Rabbit Stew",
+            "price": 100,
+            "locked": false
+        },
+        "rainbow lollipop": {
+            "name": "Rainbow Lollipop",
+            "price": 50,
+            "locked": false
+        },
+        "rock candy": {
+            "name": "Rock Candy",
+            "price": 75,
+            "locked": false
+        },
+        "rocky road": {
+            "name": "Rocky Road",
+            "price": 80,
+            "locked": true
+        },
+        "royal macarons": {
+            "name": "Royal Macarons",
+            "price": 70,
+            "locked": false
+        },
+        "salt-baked salmon": {
+            "name": "Salt-Baked Salmon",
+            "price": 90,
+            "locked": false
+        },
+        "sandwich": {
+            "name": "Sandwich",
+            "price": 60,
+            "locked": false
+        },
+        "seasonal sensation": {
+            "name": "Seasonal Sensation",
+            "price": 75,
+            "locked": false
+        },
+        "sour coffins": {
+            "name": "Sour Coffins",
+            "price": 100,
+            "locked": false
+        },
+        "sour gummies": {
+            "name": "Sour Gummies",
+            "price": 70,
+            "locked": false
+        },
+        "spinach": {
+            "name": "Spinach",
+            "price": 90,
+            "locked": false
+        },
+        "spiral pie": {
+            "name": "Spiral Pie",
+            "price": 45,
+            "locked": true
+        },
+        "starlight sundae": {
+            "name": "Starlight Sundae",
+            "price": 70,
+            "locked": false
+        },
+        "steak": {
+            "name": "Steak",
+            "price": 80,
+            "locked": false
+        },
+        "strawberry cheesecake": {
+            "name": "Strawberry Cheesecake",
+            "price": 40,
+            "locked": false
+        },
+        "strawberry-dark chocolate cake": {
+            "name": "Strawberry-Dark Chocolate Cake",
+            "price": 100,
+            "locked": false
+        },
+        "strawberry sylna cookie": {
+            "name": "Strawberry Sylna Cookie",
+            "price": 35,
+            "locked": false
+        },
+        "strawberry wafer": {
+            "name": "Strawberry Wafer",
+            "price": 120,
+            "locked": false
+        },
+        "straw-hazel tiramisu": {
+            "name": "Straw-Hazel Tiramisu",
+            "price": 60,
+            "locked": false
+        },
+        "sub sandwich": {
+            "name": "Sub Sandwich",
+            "price": 90,
+            "locked": false
+        },
+        "sunflower seeds": {
+            "name": "Sunflower Seeds",
+            "price": 100,
+            "locked": false
+        },
+        "super-choco cake": {
+            "name": "Super-Choco Cake",
+            "price": 120,
+            "locked": false
+        },
+        "supersour suckers": {
+            "name": "SuperSour Suckers",
+            "price": 90,
+            "locked": false
+        },
+        "sylna cake": {
+            "name": "Sylna Cake",
+            "price": 150,
+            "locked": false
+        },
+        "sylna cookie": {
+            "name": "Sylna Cookie",
+            "price": 20,
+            "locked": false
+        },
+        "trash": {
+            "name": "Trash",
+            "price": 1,
+            "locked": false
+        },
+        "vanilla wafer": {
+            "name": "Vanilla Wafer",
+            "price": 120,
+            "locked": false
+        },
+        "watermelon": {
+            "name": "Watermelon",
+            "price": 50,
+            "locked": false
+        },
+        "white chocolate bar": {
+            "name": "White Chocolate Bar",
+            "price": 70,
+            "locked": false
+        },
+        "wintermint custard": {
+            "name": "Wintermint Custard",
+            "price": 60,
+            "locked": false
+        },
+        "yoshi cake": {
+            "name": "Yoshi Cake",
+            "price": 400,
+            "locked": false
+        },
+        "yoshi cookie": {
+            "name": "Yoshi Cookie",
+            "price": 150,
+            "locked": false
+        },
+        "yoshi donut": {
+            "name": "Yoshi Donut",
+            "price": 300,
+            "locked": false
+        },
+        "yoshi gummies": {
+            "name": "Yoshi Gummies",
+            "price": 150,
+            "locked": false
+        }
+    },
+    "Drink": {
+        "": {
+            "name": "",
+            "price": 35,
+            "locked": false
+        },
+        "adult soda": {
+            "name": "Adult Soda",
+            "price": 80,
+            "locked": false
+        },
+        "apple juice": {
+            "name": "Apple Juice",
+            "price": 60,
+            "locked": false
+        },
+        "battery acid": {
+            "name": "Battery Acid",
+            "price": 35,
+            "locked": false
+        },
+        "blood": {
+            "name": "Blood",
+            "price": 140,
+            "locked": false
+        },
+        "bug juice": {
+            "name": "Bug Juice",
+            "price": 50,
+            "locked": false
+        },
+        "cherimonpanchi": {
+            "name": "Cherimonpanchi",
+            "price": 120,
+            "locked": false
+        },
+        "cherry blossom tea": {
+            "name": "Cherry Blossom Tea",
+            "price": 65,
+            "locked": false
+        },
+        "chocolate milk": {
+            "name": "Chocolate Milk",
+            "price": 45,
+            "locked": false
+        },
+        "chocolate tea": {
+            "name": "Chocolate Tea",
+            "price": 35,
+            "locked": false
+        },
+        "coffee": {
+            "name": "Coffee",
+            "price": 60,
+            "locked": false
+        },
+        "cookie tea": {
+            "name": "Cookie Tea",
+            "price": 60,
+            "locked": false
+        },
+        "cola soda": {
+            "name": "Cola Soda",
+            "price": 95,
+            "locked": false
+        },
+        "cranberry soda": {
+            "name": "Cranberry Soda",
+            "price": 95,
+            "locked": false
+        },
+        "crusader cider": {
+            "name": "Crusader Cider",
+            "price": 100,
+            "locked": false
+        },
+        "dark hot chocolate": {
+            "name": "Dark Hot Chocolate",
+            "price": 60,
+            "locked": false
+        },
+        "dihydrogen monoxide": {
+            "name": "Dihydrogen Monoxide",
+            "price": 85,
+            "locked": false
+        },
+        "eggnog": {
+            "name": "Eggnog",
+            "price": 70,
+            "locked": false
+        },
+        "fitness spray": {
+            "name": "Fitness Spray",
+            "price": 60,
+            "locked": false
+        },
+        "fruit punch": {
+            "name": "Fruit Punch",
+            "price": 60,
+            "locked": false
+        },
+        "gallon o\u2019 glitches": {
+            "name": "Gallon O\u2019 Glitches",
+            "price": 80,
+            "locked": false
+        },
+        "green tea": {
+            "name": "Green Tea",
+            "price": 75,
+            "locked": true
+        },
+        "healthy smoothie": {
+            "name": "Healthy Smoothie",
+            "price": 70,
+            "locked": false
+        },
+        "ice-cold energy": {
+            "name": "Ice-Cold Energy",
+            "price": 80,
+            "locked": false
+        },
+        "iced tea": {
+            "name": "Iced Tea",
+            "price": 70,
+            "locked": true
+        },
+        "lemonade": {
+            "name": "Lemonade",
+            "price": 55,
+            "locked": false
+        },
+        "lettuce soda": {
+            "name": "Lettuce Soda",
+            "price": 95,
+            "locked": false
+        },
+        "lightbringer latte": {
+            "name": "Lightbringer Latte",
+            "price": 75,
+            "locked": false
+        },
+        "limeade": {
+            "name": "Limeade",
+            "price": 55,
+            "locked": false
+        },
+        "martini": {
+            "name": "Martini",
+            "price": 100,
+            "locked": true
+        },
+        "melon soda": {
+            "name": "Melon Soda",
+            "price": 95,
+            "locked": false
+        },
+        "milk": {
+            "name": "Milk",
+            "price": 20,
+            "locked": false
+        },
+        "milk hot chocolate": {
+            "name": "Milk Hot Chocolate",
+            "price": 60,
+            "locked": false
+        },
+        "mixers": {
+            "name": "Mixers",
+            "price": 70,
+            "locked": true
+        },
+        "mocha": {
+            "name": "Mocha",
+            "price": 120,
+            "locked": true
+        },
+        "moonlight float": {
+            "name": "Moonlight Float",
+            "price": 95,
+            "locked": true
+        },
+        "orange soda": {
+            "name": "Orange Soda",
+            "price": 95,
+            "locked": false
+        },
+        "pina colada": {
+            "name": "Pina Colada",
+            "price": 95,
+            "locked": true
+        },
+        "sea tea": {
+            "name": "Sea Tea",
+            "price": 30,
+            "locked": false
+        },
+        "sibilance shake": {
+            "name": "Sibilance Shake",
+            "price": 85,
+            "locked": false
+        },
+        "sinful soda": {
+            "name": "Sinful Soda",
+            "price": 95,
+            "locked": false
+        },
+        "soda": {
+            "name": "Soda",
+            "price": 95,
+            "locked": false
+        },
+        "starlight float": {
+            "name": "Starlight Float",
+            "price": 65,
+            "locked": true
+        },
+        "tea": {
+            "name": "Tea",
+            "price": 45,
+            "locked": false
+        },
+        "vexin vekimi": {
+            "name": "Vexin Vekimi",
+            "price": 80,
+            "locked": false
+        },
+        "white hot chocolate": {
+            "name": "White Hot Chocolate",
+            "price": 60,
+            "locked": false
+        }
+    },
+    "Revive": {
+        "aloe vera": {
+            "name": "Aloe Vera",
+            "price": 70,
+            "locked": true
+        },
+        "chocolate mint": {
+            "name": "Chocolate Mint",
+            "price": 200,
+            "locked": false
+        },
+        "crepe": {
+            "name": "Crepe",
+            "price": 125,
+            "locked": false
+        },
+        "lotus": {
+            "name": "Lotus",
+            "price": 999,
+            "locked": false
+        },
+        "marshmallow": {
+            "name": "Marshmallow",
+            "price": 75,
+            "locked": false
+        },
+        "revisional cake": {
+            "name": "Revisional Cake",
+            "price": 250,
+            "locked": false
+        },
+        "revive-dust": {
+            "name": "Revive-Dust",
+            "price": 100,
+            "locked": false
+        },
+        "revive-mint": {
+            "name": "Revive-Mint",
+            "price": 200,
+            "locked": false
+        },
+        "soda tablets": {
+            "name": "Soda Tablets",
+            "price": 100,
+            "locked": false
+        },
+        "toasted marshmallow": {
+            "name": "Toasted Marshmallow",
+            "price": 200,
+            "locked": false
+        },
+        "tumbiecake": {
+            "name": "Tumbiecake",
+            "price": 150,
+            "locked": false
+        }
+    },
+    "Battle": {
+        "accelerator": {
+            "name": "Accelerator",
+            "price": 125,
+            "locked": false
+        },
+        "adrenaline shot": {
+            "name": "Adrenaline Shot",
+            "price": 125,
+            "locked": false
+        },
+        "airhorn": {
+            "name": "Airhorn",
+            "price": 150,
+            "locked": false
+        },
+        "alarm clock": {
+            "name": "Alarm Clock",
+            "price": 70,
+            "locked": false
+        },
+        "big pencil rocket": {
+            "name": "Big Pencil Rocket",
+            "price": 150,
+            "locked": false
+        },
+        "bottle of bees": {
+            "name": "Bottle of Bees",
+            "price": 75,
+            "locked": false
+        },
+        "flamethrower": {
+            "name": "Flamethrower",
+            "price": 150,
+            "locked": false
+        },
+        "glass cannon": {
+            "name": "Glass Cannon",
+            "price": 60,
+            "locked": false
+        },
+        "handy glove": {
+            "name": "Handy Glove",
+            "price": 50,
+            "locked": false
+        },
+        "kill code": {
+            "name": "Kill Code",
+            "price": 70,
+            "locked": false
+        },
+        "loaded dice": {
+            "name": "Loaded Dice",
+            "price": 50,
+            "locked": false
+        },
+        "magic door": {
+            "name": "Magic Door",
+            "price": 150,
+            "locked": false
+        },
+        "maple syrup": {
+            "name": "Maple Syrup",
+            "price": 50,
+            "locked": false
+        },
+        "microphone": {
+            "name": "Microphone",
+            "price": 90,
+            "locked": false
+        },
+        "moonlight candle": {
+            "name": "Moonlight Candle",
+            "price": 60,
+            "locked": true
+        },
+        "motivational poster": {
+            "name": "Motivational Poster",
+            "price": 50,
+            "locked": false
+        },
+        "multi-bottle rocket": {
+            "name": "Multi-Bottle Rocket",
+            "price": 175,
+            "locked": false
+        },
+        "neutralizer": {
+            "name": "Neutralizer",
+            "price": 75,
+            "locked": false
+        },
+        "ocarina": {
+            "name": "Ocarina",
+            "price": 120,
+            "locked": false
+        },
+        "pencil rocket": {
+            "name": "Pencil Rocket",
+            "price": 125,
+            "locked": false
+        },
+        "pencil sharpener": {
+            "name": "Pencil Sharpener",
+            "price": 50,
+            "locked": false
+        },
+        "pipe bomb": {
+            "name": "Pipe Bomb",
+            "price": 100,
+            "locked": false
+        },
+        "poisoned spikes": {
+            "name": "Poisoned Spikes",
+            "price": 35,
+            "locked": false
+        },
+        "portable shield": {
+            "name": "Portable Shield",
+            "price": 60,
+            "locked": false
+        },
+        "power crystal": {
+            "name": "Power Crystal",
+            "price": 90,
+            "locked": false
+        },
+        "quick scope": {
+            "name": "Quick Scope",
+            "price": 75,
+            "locked": false
+        },
+        "silver bullet": {
+            "name": "Silver Bullet",
+            "price": 70,
+            "locked": false
+        },
+        "single-use pistol": {
+            "name": "Single-Use Pistol",
+            "price": 75,
+            "locked": false
+        },
+        "sticker pack": {
+            "name": "Sticker Pack",
+            "price": 50,
+            "locked": false
+        },
+        "???": {
+            "name": "???",
+            "price": 90,
+            "locked": true
+        },
+        "strong rope": {
+            "name": "Strong Rope",
+            "price": 100,
+            "locked": false
+        },
+        "syringe": {
+            "name": "Syringe",
+            "price": 60,
+            "locked": false
+        },
+        "throwing dagger": {
+            "name": "Throwing Dagger",
+            "price": 60,
+            "locked": false
+        },
+        "tuning wrench": {
+            "name": "Tuning Wrench",
+            "price": 70,
+            "locked": false
+        }
+    },
+    "Regular Badges": {
+        "agility": {
+            "name": "Agility",
+            "price": 300,
+            "locked": false
+        },
+        "aggressive armament": {
+            "name": "Aggressive Armament",
+            "price": 300,
+            "locked": false
+        },
+        "awareness": {
+            "name": "Awareness",
+            "price": 200,
+            "locked": false
+        },
+        "axe-load": {
+            "name": "Axe-Load",
+            "price": 300,
+            "locked": false
+        },
+        "cleansing": {
+            "name": "Cleansing",
+            "price": 500,
+            "locked": false
+        },
+        "deep concentration": {
+            "name": "Deep Concentration",
+            "price": 500,
+            "locked": false
+        },
+        "deep focus": {
+            "name": "Deep Focus",
+            "price": 600,
+            "locked": false
+        },
+        "dexterous": {
+            "name": "Dexterous",
+            "price": 450,
+            "locked": false
+        },
+        "fortunate": {
+            "name": "Fortunate",
+            "price": 450,
+            "locked": false
+        },
+        "fruity": {
+            "name": "Fruity",
+            "price": 400,
+            "locked": false
+        },
+        "fury": {
+            "name": "Fury",
+            "price": 300,
+            "locked": false
+        },
+        "grindgame": {
+            "name": "Grindgame",
+            "price": 450,
+            "locked": false
+        },
+        "hard hitter": {
+            "name": "Hard Hitter",
+            "price": 200,
+            "locked": false
+        },
+        "headstart": {
+            "name": "Headstart",
+            "price": 150,
+            "locked": false
+        },
+        "heart finder i": {
+            "name": "Heart Finder I",
+            "price": 150,
+            "locked": false
+        },
+        "heart finder ii": {
+            "name": "Heart Finder II",
+            "price": 200,
+            "locked": false
+        },
+        "heart finder iii": {
+            "name": "Heart Finder III",
+            "price": 250,
+            "locked": false
+        },
+        "heart finder iv": {
+            "name": "Heart Finder IV",
+            "price": 350,
+            "locked": false
+        },
+        "heavy": {
+            "name": "Heavy",
+            "price": 400,
+            "locked": false
+        },
+        "helmet": {
+            "name": "Helmet",
+            "price": 350,
+            "locked": false
+        },
+        "intelligence": {
+            "name": "Intelligence",
+            "price": 450,
+            "locked": false
+        },
+        "invigorated": {
+            "name": "Invigorated",
+            "price": 500,
+            "locked": false
+        },
+        "lifesaver": {
+            "name": "Lifesaver",
+            "price": 400,
+            "locked": false
+        },
+        "lucky": {
+            "name": "Lucky",
+            "price": 200,
+            "locked": false
+        },
+        "medical": {
+            "name": "Medical",
+            "price": 400,
+            "locked": false
+        },
+        "nightlight": {
+            "name": "Nightlight",
+            "price": 450,
+            "locked": false
+        },
+        "pay-off": {
+            "name": "Pay-Off",
+            "price": 550,
+            "locked": false
+        },
+        "quick defend": {
+            "name": "Quick Defend",
+            "price": 500,
+            "locked": false
+        },
+        "quick eater": {
+            "name": "Quick Eater",
+            "price": 500,
+            "locked": false
+        },
+        "quick reflexes": {
+            "name": "Quick Reflexes",
+            "price": 450,
+            "locked": false
+        },
+        "rounder": {
+            "name": "Rounder",
+            "price": 100,
+            "locked": false
+        },
+        "serenity": {
+            "name": "Serenity",
+            "price": 450,
+            "locked": false
+        },
+        "speed": {
+            "name": "Speed",
+            "price": 150,
+            "locked": false
+        },
+        "spoon": {
+            "name": "Spoon",
+            "price": 450,
+            "locked": false
+        },
+        "strength": {
+            "name": "Strength",
+            "price": 450,
+            "locked": false
+        },
+        "survivalist": {
+            "name": "Survivalist",
+            "price": 450,
+            "locked": false
+        },
+        "teamwork": {
+            "name": "Teamwork",
+            "price": 250,
+            "locked": false
+        },
+        "thorny": {
+            "name": "Thorny",
+            "price": 200,
+            "locked": false
+        },
+        "tower": {
+            "name": "Tower",
+            "price": 300,
+            "locked": false
+        },
+        "vengeance": {
+            "name": "Vengeance",
+            "price": 450,
+            "locked": false
+        },
+        "vigilante": {
+            "name": "Vigilante",
+            "price": 400,
+            "locked": false
+        },
+        "weak point": {
+            "name": "Weak Point",
+            "price": 350,
+            "locked": false
+        },
+        "wish": {
+            "name": "Wish",
+            "price": 450,
+            "locked": false
+        }
+    }
+}

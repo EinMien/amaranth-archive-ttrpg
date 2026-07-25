@@ -2,6 +2,8 @@
 __pycache__/
 *.pyc
 bot_errors.log
-data/*.json
-!data/*.example.json
+data/players.json
+data/dms.json
+data/groups.json
+data/wallet.json
 venv/

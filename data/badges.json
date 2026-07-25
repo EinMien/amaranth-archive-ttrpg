@@ -1,0 +1,536 @@
+{
+    "Regular Badges": {
+        "agility badge": {
+            "title": "Agility Badge",
+            "effect": "+3 on DODGE rolls.\nAggressive Armament Badge",
+            "aliases": [
+                "agility badge"
+            ],
+            "weight": 1.0
+        },
+        "aggressive armament badge": {
+            "title": "Aggressive Armament Badge",
+            "effect": "+3 on HIT rolls.\nAwareness Badge",
+            "aliases": [
+                "aggressive armament badge"
+            ],
+            "weight": 1.0
+        },
+        "awareness badge": {
+            "title": "Awareness Badge",
+            "effect": "The wearer cannot be Counterattacked.\nAxe-Load Badge",
+            "aliases": [
+                "awareness badge"
+            ],
+            "weight": 1.0
+        },
+        "axe-load badge": {
+            "title": "Axe-Load Badge",
+            "effect": "After the first 3 turns of battle, afflict the wearer with RAGE, that goes up to Tier VI. For each 2 Tiers of RAGE, lower the wearer's DODGE by 1. If this status is cured, re-afflict it after 3 turns have passed.\nCleansing Badge",
+            "aliases": [
+                "axe-load badge"
+            ],
+            "weight": 1.0
+        },
+        "cleansing badge": {
+            "title": "Cleansing Badge",
+            "effect": "If the wearer heals another Party Member(s) by a MAGIC, flip a coin for each one; if Heads, afflict that Party Member with REFRESHED for 1 turn.\nDeep Concentration Badge",
+            "aliases": [
+                "cleansing badge"
+            ],
+            "weight": 1.0
+        },
+        "deep concentration badge": {
+            "title": "Deep Concentration Badge",
+            "effect": "If the wearer DEFENDs, their Cooldowns are reduced by 1.\nDeep Focus Badge",
+            "aliases": [
+                "deep concentration badge"
+            ],
+            "weight": 1.0
+        },
+        "deep focus badge": {
+            "title": "Deep Focus Badge",
+            "effect": "Once per turn, you can choose to re-roll a die roll and/or re-flip a coin flip. (If many die rolls or coin flips happen at the same time, redo all of them.)\nDexterity Badge",
+            "aliases": [
+                "deep focus badge"
+            ],
+            "weight": 1.0
+        },
+        "dexterity badge": {
+            "title": "Dexterity Badge",
+            "effect": "After the first 3 turns of battle, afflict the wearer with DEXTEROUS. If this status is cured, re-afflict it after 3 turns have passed.\nEmblem of Anxiety",
+            "aliases": [
+                "dexterity badge"
+            ],
+            "weight": 1.0
+        },
+        "fortunate badge": {
+            "title": "Fortunate Badge",
+            "effect": "After the first 3 rounds of battle, afflict the wearer with LUCKY. If this status is cured, re-afflict it after 3 rounds have passed.\nFruity Badge",
+            "aliases": [
+                "fortunate badge"
+            ],
+            "weight": 1.0
+        },
+        "fruity badge": {
+            "title": "Fruity Badge",
+            "effect": "Any Fruit used on the wearer applies the effects of 1 preference tier higher. (Ex. Neutral -> Well-Liked, Well-Liked -> Obessed, Disliked -> Neutral). If Obessed or Allergic, this effect doesn't apply.",
+            "aliases": [
+                "fruity badge"
+            ],
+            "weight": 1.0
+        },
+        "fury badge": {
+            "title": "Fury Badge",
+            "effect": "Cooldown rolls of the wearer have +1, but they have +20 in Damage rolls and +1 in HIT rolls.\nGrindgame Badge",
+            "aliases": [
+                "fury badge"
+            ],
+            "weight": 1.0
+        },
+        "grindgame badge": {
+            "title": "Grindgame Badge",
+            "effect": "After the first 3 turns of battle, afflict the wearer with GRINDING. If this status is cured, re-afflict it after 3 turns have passed.\nHail Badge",
+            "aliases": [
+                "grindgame badge"
+            ],
+            "weight": 1.0
+        },
+        "hail badge": {
+            "title": "Hail Badge",
+            "effect": "If the wearer rolls a natural 20 to HIT, Damage, or DODGE, one of the target(s) are afflicted with COLD for 2 turns. If the target already has COLD, add 1 more turn to it.\nHard Hitter Badge",
+            "aliases": [
+                "hail badge"
+            ],
+            "weight": 1.0
+        },
+        "hard hitter badge": {
+            "title": "Hard Hitter Badge",
+            "effect": "+10 to Damage Rolls\nHardmode Emblem",
+            "aliases": [
+                "hard hitter badge"
+            ],
+            "weight": 1.0
+        },
+        "headstart badge": {
+            "title": "Headstart Badge",
+            "effect": "If the wearer rolls a natural 16-20 on Turn Order, they gain an Extra Turn. If they roll a natural 20, they are afflicted with HYPER for 1 turn.\nHeart Finder Badge I",
+            "aliases": [
+                "headstart badge"
+            ],
+            "weight": 1.0
+        },
+        "heart finder badge i": {
+            "title": "Heart Finder Badge I",
+            "effect": "The wearer gains 20 more MAX HP.\nHeart Finder Badge II",
+            "aliases": [
+                "heart finder badge i"
+            ],
+            "weight": 1.0
+        },
+        "heart finder badge ii": {
+            "title": "Heart Finder Badge II",
+            "effect": "The wearer gains 30 more MAX HP.\nHeart Finder Badge III",
+            "aliases": [
+                "heart finder badge ii"
+            ],
+            "weight": 1.0
+        },
+        "heart finder badge iii": {
+            "title": "Heart Finder Badge III",
+            "effect": "The wearer gains 40 more MAX HP.\nHeart Finder Badge IV",
+            "aliases": [
+                "heart finder badge iii"
+            ],
+            "weight": 1.0
+        },
+        "heart finder badge iv": {
+            "title": "Heart Finder Badge IV",
+            "effect": "The wearer gains 40 more MAX HP. At the start of the battle, overheal the wearer for 20 HP.\nHeavy Badge",
+            "aliases": [
+                "heart finder badge iv"
+            ],
+            "weight": 1.0
+        },
+        "heavy badge": {
+            "title": "Heavy Badge",
+            "effect": "The wearer's STRONG hit chance is 5 under their critical chance instead of 2 under.\nHelmet Badge",
+            "aliases": [
+                "heavy badge"
+            ],
+            "weight": 1.0
+        },
+        "helmet badge": {
+            "title": "Helmet Badge",
+            "effect": "The wearer takes 15 less damage. If the wearer takes damage equal to half of their MAX HP or more, the damage dealt past that is 3/5'd and they take 4/5 damage for 2 turns.\nHigh Roller Badge",
+            "aliases": [
+                "helmet badge"
+            ],
+            "weight": 1.0
+        },
+        "intelligence badge": {
+            "title": "Intelligence Badge",
+            "effect": "After the first 3 turns of battle, afflict the wearer with FOCUSED. If this status is cured, re-afflict it after 3 turns have passed.\nInvigorated Badge",
+            "aliases": [
+                "intelligence badge"
+            ],
+            "weight": 1.0
+        },
+        "invigorated badge": {
+            "title": "Invigorated Badge",
+            "effect": "The wearer cannot take damage from STATUSes.\nLifesaver Badge",
+            "aliases": [
+                "invigorated badge"
+            ],
+            "weight": 1.0
+        },
+        "lifesaver badge": {
+            "title": "Lifesaver Badge",
+            "effect": "The wearer gains +5 MAX HP. Every other turn, the wearer heals 15 HP and gains 1 Charge of \"Instant Increase\"; this \"Instant Increase\" is the same one as the Orange ITEM would've applied onto the wearer.\nLucky Badge",
+            "aliases": [
+                "lifesaver badge"
+            ],
+            "weight": 1.0
+        },
+        "lucky badge": {
+            "title": "Lucky Badge",
+            "effect": "Increase Critical Hit Rate +2.\nMedical Badge",
+            "aliases": [
+                "lucky badge"
+            ],
+            "weight": 1.0
+        },
+        "medical badge": {
+            "title": "Medical Badge",
+            "effect": "Healing effects from MAGIC casted by the wearer are 1.5x more effective.\nMultiplier Badge",
+            "aliases": [
+                "medical badge"
+            ],
+            "weight": 1.0
+        },
+        "nightlight badge": {
+            "title": "Nightlight Badge",
+            "effect": "Every 3 turns, the wearer is afflicted with 1d5 Tiers of MOONLIGHT. This MOONLIGHT cannot be cured.\nPay-Off Badge",
+            "aliases": [
+                "nightlight badge"
+            ],
+            "weight": 1.0
+        },
+        "pay-off badge": {
+            "title": "Pay-Off Badge",
+            "effect": "For each 5 damage the wearer takes, they gain a +1 to their next Damage roll. For each 15, they gain +1 to HIT.  Resets when the wearer damages an enemy.\nQuick Defend Badge",
+            "aliases": [
+                "pay-off badge"
+            ],
+            "weight": 1.0
+        },
+        "quick defend badge": {
+            "title": "Quick Defend Badge",
+            "effect": "Allows the user to retain their turn after DEFENDing, but if they do, the damage from any FIGHT or MAGIC is halved if it damages.\nQuick Eater Badge",
+            "aliases": [
+                "quick defend badge"
+            ],
+            "weight": 1.0
+        },
+        "quick eater badge": {
+            "title": "Quick Eater Badge",
+            "effect": "The first time the wearer uses an ITEM each turn, they flip a coin. If heads, they retain their turn.\nQuick Reflexes Badge",
+            "aliases": [
+                "quick eater badge"
+            ],
+            "weight": 1.0
+        },
+        "quick reflexes badge": {
+            "title": "Quick Reflexes Badge",
+            "effect": "After the first 3 turns of battle, afflict the wearer with ALERT. If this status is cured, re-afflict it after 3 turns have passed.\nRejuvenation Badge",
+            "aliases": [
+                "quick reflexes badge"
+            ],
+            "weight": 1.0
+        },
+        "rounder badge": {
+            "title": "Rounder Badge",
+            "effect": "AoE moves of the wearer deal 1.25x Damage.\nRPG Badge",
+            "aliases": [
+                "rounder badge"
+            ],
+            "weight": 1.0
+        },
+        "serenity badge": {
+            "title": "Serenity Badge",
+            "effect": "If the wearer uses a Concentration-based move, flip a coin. If heads, they can skip 1 turn of it.\nShelter Badge",
+            "aliases": [
+                "serenity badge"
+            ],
+            "weight": 1.0
+        },
+        "speed badge": {
+            "title": "Speed Badge",
+            "effect": "Makes the wearer always go first in turn order. If two party members have this badge, then they roll for who goes first as normal, but they still go before all other characters without it.\nSpoon Badge",
+            "aliases": [
+                "speed badge"
+            ],
+            "weight": 1.0
+        },
+        "spoon badge": {
+            "title": "Spoon Badge",
+            "effect": "Healing ITEMs the wearer uses heals for 1.5x more HP.\nStrength Badge",
+            "aliases": [
+                "spoon badge"
+            ],
+            "weight": 1.0
+        },
+        "strength badge": {
+            "title": "Strength Badge",
+            "effect": "After the first 3 turns of battle, afflict the wearer with STRONG. If this status is removed, re-afflict it after 3 turns have passed.\nSurvivalist Badge",
+            "aliases": [
+                "strength badge"
+            ],
+            "weight": 1.0
+        },
+        "survivalist badge": {
+            "title": "Survivalist Badge",
+            "effect": "If the wearer went 5 turns without being KO'd, afflict them with a chosen STATUS until KO'd.\nTeamwork Badge",
+            "aliases": [
+                "survivalist badge"
+            ],
+            "weight": 1.0
+        },
+        "teamwork badge": {
+            "title": "Teamwork Badge",
+            "effect": "The wearer gains +1 to Damage Dice for each Party Member (excluding themself) in a Battle. Multi-HIT attacks are unaffected.\nThorny Badge",
+            "aliases": [
+                "teamwork badge"
+            ],
+            "weight": 1.0
+        },
+        "thorny badge": {
+            "title": "Thorny Badge",
+            "effect": "If the wearer is attacked while DEFENDing, the attacker takes damage equal to the damage they dealt.\nTower Badge",
+            "aliases": [
+                "thorny badge"
+            ],
+            "weight": 1.0
+        },
+        "tower badge": {
+            "title": "Tower Badge",
+            "effect": "Wearer can be afflicted with 2 more tiers of 5 tier Good/Neutral Statuses, 5 more tiers of 10 tier Good/Neutral Statuses, and 10 more tiers of 20 tier Good/Neutral Statuses. Wearer can also afflict 2 more tiers of 5 tier Bad/Neutral Statuses, 5 more tiers of 10 tier Bad/Neutral Statuses, and 10 more tiers of 20 tier Bad/Neutral Statuses.\nVengeance Badge",
+            "aliases": [
+                "tower badge"
+            ],
+            "weight": 1.0
+        },
+        "vengeance badge": {
+            "title": "Vengeance Badge",
+            "effect": "If a Party Member is KO'd, afflict the wearer with VENGEFUL for turns equal to their negative HP divided by 30, targeted toward the enemy that KO'd them. If alone, the wearer is afflicted with AVENGED after the first 3 turns of battle.\nVigilante Badge",
+            "aliases": [
+                "vengeance badge"
+            ],
+            "weight": 1.0
+        },
+        "vigilante badge": {
+            "title": "Vigilante Badge",
+            "effect": "The wearer gets a +2 to HIT and DODGE, and a +5 in Damage.\nVixen Badge",
+            "aliases": [
+                "vigilante badge"
+            ],
+            "weight": 1.0
+        },
+        "vixen badge": {
+            "title": "Vixen Badge",
+            "effect": "If the wearer rolls a natural 20 to HIT, Damage, or DODGE, one of the target(s) are afflicted with (HARD) BURN for 3 turns. If the target already has (HARD) BURN, Double it\u2019s effects.\nWeak Point Badge",
+            "aliases": [
+                "vixen badge"
+            ],
+            "weight": 1.0
+        },
+        "weak point badge": {
+            "title": "Weak Point Badge",
+            "effect": "Rolls to HIT that are 16-18 are Strong. 19-22 are Critical. 23+ are Devastating.\nWish Badge",
+            "aliases": [
+                "weak point badge"
+            ],
+            "weight": 1.0
+        },
+        "wish badge": {
+            "title": "Wish Badge",
+            "effect": "When at MAX HP or higher afflict the wearer with a random permanent GOOD status. If it's JOYFUL; reroll. Recover the wearer from this status if their HP is lower than MAX and afflict them with a random permanent good status once they're at MAX or higher again.\n# STATUS Effects\n# Explaining STATUS\nSTATUSes are special conditions that can affect any character on the battlefield! They can be beneficial, harmful, or somewhere in between\u2026 Make sure to have this guide on hand whenever you come across a STATUS you don\u2019t know! But before that\u2026",
+            "aliases": [
+                "wish badge"
+            ],
+            "weight": 1.0
+        }
+    },
+    "Emblems": {
+        "emblem of anxiety": {
+            "title": "Emblem of Anxiety",
+            "effect": "At the start of battle, this badge acts like a random different badge (can even be emblems). Every 3 turns, roll for a different badge. If the roll lands on this badge, roll for 2 badges next turn and apply the effects. If the badge has an effect to afflict a STATUS after a set amount of turns in battle, then afflict that STATUS for the duration of this effect instead.\nEmblem of Comboing",
+            "aliases": [
+                "emblem of anxiety"
+            ],
+            "weight": 1.0
+        },
+        "emblem of comboing": {
+            "title": "Emblem of Comboing",
+            "effect": "Each time the wearer HITs  a Damaging Action, they gain 1 Combo Point (Max. 15). If the wearer MISSes a Damaging Action, they flip a coin, and if tails, they lose all Combo Points. This flip cannot be rerolled. Multi-HIT attacks only gain 1 Combo Point, however they only lose Combo Points if all HITs miss. Apply the following effects for the amount of Combo Points the wearer has.\n- 1+: The wearer gains +2 Damage for each Combo Point.\n- 3+: The wearer gains +1 HIT for each 3 Combo Points.\n- 6+: The wearer gains +1 Critical Chance for every 3 Combo Points.\n- 9+: The wearer gains +1 DODGE for every 3 Combo Points.\n- 12+: The wearer gains +3 Devastating Chance, also they deal Celestial (4x) HITs on a 27+ HIT.\n- 15: The wearer is afflicted with BLESSED (XX). This BLESSED still raises sides of Damage Dice with 15 sides or less, and has its effects Doubled on FIGHT.\nEmblem of Divinity",
+            "aliases": [
+                "emblem of comboing"
+            ],
+            "weight": 1.0
+        },
+        "emblem of divinity": {
+            "title": "Emblem of Divinity",
+            "effect": "At the start of the wearer's turn, they roll 1d3. If 3, they are afflicted with LIGHT (I) and 1 random Good STATUS for 3 turns (even if normally permanent). The wearer gains +5 MAX HP for each Tier of LIGHT afflicted onto them.\nEmblem of Endless Rage",
+            "aliases": [
+                "emblem of divinity"
+            ],
+            "weight": 1.0
+        },
+        "emblem of endless rage": {
+            "title": "Emblem of Endless Rage",
+            "effect": "Afflict the wearer with FURIOUS and BLESSED (N) after the first 3 turns of battle; these combine into FURY (N). If either are cured from the wearer, re-afflict them with it after 3 more turns. If BLESSED was cured, afflict half the tiers back that it originally had. This FURY does not give a multiplier to damage and locks DEFEND. When the wearer is HIT or they miss, afflict them with 1d2 tiers. Every 3 turns, afflict them with 1d2+2 tiers.\nEmblem of Foliage",
+            "aliases": [
+                "emblem of endless rage"
+            ],
+            "weight": 1.0
+        },
+        "emblem of foliage": {
+            "title": "Emblem of Foliage",
+            "effect": "After the first 3 turns of battle, the wearer is afflicted with MOSSY, cannot be unaffiliated. If this status is cured, re-afflict it after 3 turns have passed. If the wearer is afflicted with MOSSY again that's not from this BADGE, double the effects of MOSSY for the duration it would've been afflicted.\nEmblem of Fame",
+            "aliases": [
+                "emblem of foliage"
+            ],
+            "weight": 1.0
+        },
+        "emblem of fame": {
+            "title": "Emblem of Fame",
+            "effect": "Other members in the wearer's party gains +2 to HIT and +5 to Damage. The wearer instead gains +2 to DODGE. If the wearer is alone, or is the only non-KO'd member of their party, +4 to DODGE instead.\nEmblem of Fortune",
+            "aliases": [
+                "emblem of fame"
+            ],
+            "weight": 1.0
+        },
+        "emblem of fortune": {
+            "title": "Emblem of Fortune",
+            "effect": "Every 2 turns, roll 1d6, and apply the following effect depending on the outcome.\n1. The wearer takes 20 Damage.\n2. The wearer gains a 40 HP shield. If they already have a shield, increase it's MAX HP by 40 and heal it for 40 HP.\n3. The wearer is afflicted with a random Good STATUS for 2 turns.\n4. This turn, the wearer retains their turn when they use an ITEM.\n5. The wearer gains a +3 to HIT and DODGE for 2 turns.\n6. The wearer's Cooldowns are all reduced by -1d2.\nEmblem of Frights",
+            "aliases": [
+                "emblem of fortune"
+            ],
+            "weight": 1.0
+        },
+        "emblem of frights": {
+            "title": "Emblem of Frights",
+            "effect": "+10 to Damage Rolls. The wearer deals Celestial HITs on 28-32, and Decimating HITs on 33+.\nEmblem of Gold",
+            "aliases": [
+                "emblem of frights"
+            ],
+            "weight": 1.0
+        },
+        "emblem of gold": {
+            "title": "Emblem of Gold",
+            "effect": "The wearer gains 1d25 GOLD at the start of their turns. If they DEFENDED on the last turn, they instead gain 1d35+5 GOLD unless they paid for DEFEND retaining turn last turn. The wearer can pay for any of the following effects with the required GOLD at the start of their turn.\n* 2 G: Heal the wearer for 3 HP (Can be bought multiple times.)\n* 15 G: +5 Damage this turn (Can be bought multiple times.)\n* 25 G: DEFEND retains turns this turn.\n* 50 G: +0.5x multiplier for this turn.\n* 80 G: Afflict the wearer with 2 random GOOD statuses for 2 turns.\n* 150 G: Afflict the wearer with a random permanent GOOD status. If they were already afflicted with one due to this effect, the caster chooses to have the new status rolled as permanent or not, if made permanent, the previous permanent status is recovered from, if not, the status is afflicted for 5 turns.\n* 300 G: The wearer's party all gain an extra turn on their next turn.\nEmblem of Ribbits",
+            "aliases": [
+                "emblem of gold"
+            ],
+            "weight": 1.0
+        },
+        "emblem of ribbits": {
+            "title": "Emblem of Ribbits",
+            "effect": "At the start of the fight, the wearer summons a Froggit. After it is KO'd and 3 turns have passed, the wearer summons another Froggit. Froggits take their turn after the wearer and their actions are chosen at random. For every 3rd time the wearer summons a Froggit, summon an additional Froggit.\nEmblem of Technology",
+            "aliases": [
+                "emblem of ribbits"
+            ],
+            "weight": 1.0
+        },
+        "emblem of technology": {
+            "title": "Emblem of Technology",
+            "effect": "Apply these effects to the wearer's actions.\n- FIGHT: +10 Damage Dice Sides, +5 HIT Dice sides.\n- MAGIC: +10 Damage, roll 1d4 on a HIT. If 4, afflict the target with SHOCK for 2 turns.\n- ITEM: If the wearer heals the target of the ITEM to MAX HP, the target gains +3 HIT and DODGE for 1 turn. If it Damages, add +5 to the HIT roll of it; if Multi-HIT, only add +5 to the first 5 HIT rolls. If it is Guaranteed, multiply Damage by 1.5x instead. If it doesn't heal or Damage, the user is afflicted with 1d10 Tiers of BERSERK for 2 turns.\n- DEFEND: Any DODGEs the wearer rolls while this is active are treated as Counterattacks, also counterattacks have +10 Damage and Damage Dice Sides.\nEmblem of the SOUL",
+            "aliases": [
+                "emblem of technology"
+            ],
+            "weight": 1.0
+        },
+        "emblem of the soul": {
+            "title": "Emblem of the SOUL",
+            "effect": "After the first 4 turns of battle, afflict the wearer with one of their SOUL STATUSes. After 4 more turns, afflict the wearer with their other SOUL STATUS. After 4 more turns, double the effects of one of the two STATUSes at random for that round. Repeat this effect every 4 turns.\nEmblem of Tranquility",
+            "aliases": [
+                "emblem of the soul"
+            ],
+            "weight": 1.0
+        },
+        "emblem of tranquility": {
+            "title": "Emblem of Tranquility",
+            "effect": "After the first 3 turns of battle, afflict the wearer with COZY. If COZY would unafflict itself by it's own effect, it isn't unafflicted. This COZY gives +3 DODGE as well if 20+ HP is healed. If this status is cured, re-afflict it after 3 turns have passed.\nEmblem of Warriors",
+            "aliases": [
+                "emblem of tranquility"
+            ],
+            "weight": 1.0
+        },
+        "emblem of warriors": {
+            "title": "Emblem of Warriors",
+            "effect": "The wearer gains +3 to HIT and +10 to Damage for FIGHT. Flip a coin after FIGHT is used, if heads, gain an extra +10 Damage.\nFirst-Aid Badge",
+            "aliases": [
+                "emblem of warriors"
+            ],
+            "weight": 1.0
+        },
+        "hardmode emblem": {
+            "title": "Hardmode Emblem",
+            "effect": "The wearer takes 1.5x more Damage, and deals 1/2 Damage, but rewards from a battle are doubled.\nHeadstart Badge",
+            "aliases": [
+                "hardmode emblem"
+            ],
+            "weight": 1.0
+        }
+    },
+    "Combo Badges": {
+        "first-aid badge": {
+            "title": "First-Aid Badge",
+            "effect": "MAGIC and ITEMs the wearer casts/uses heal for 1.5x the amount of HP. Whenever the wearer casts a healing MAGIC or uses an ITEM, they flip a coin. If heads, they retain their turn.\nFortunate Badge",
+            "aliases": [
+                "first-aid badge"
+            ],
+            "weight": 1.0
+        },
+        "high roller badge": {
+            "title": "High Roller Badge",
+            "effect": "If the wearer rolls a Natural 20 to HIT, Damage, or DODGE, afflict them with COZY for 2 turns, and an enemy with COLD and (FULL) BURN (VI) for 2 turns. Opposite pairs do not apply if COLD afflicts FROZEN. If the caster is already COZY, extend the duration of it by 2 turns. If the target is already COLD, add 1 more turn onto it. This (FULL) BURN goes past the normal Tier limit, but the HIT decrease only goes up to -3.\nIntelligence Badge",
+            "aliases": [
+                "high roller badge"
+            ],
+            "weight": 1.0
+        },
+        "multiplier badge": {
+            "title": "Multiplier Badge",
+            "effect": "HIT rolls of the wearer that are 14 - 16 are Strong, 17 - 22 are treated as Critical, 23 - 29 are treated as Devastating, and 30+ are treated as Celestial (4x). The wearer's Critical or Modifier Chance cannot be changed further.\nNightlight Badge",
+            "aliases": [
+                "multiplier badge"
+            ],
+            "weight": 1.0
+        },
+        "rejuvenation badge": {
+            "title": "Rejuvenation Badge",
+            "effect": "The wearer gains +10 MAX HP. Every other turn, the wearer heals 15 HP and gains 1 Charge of \"Instant Increase\"; this \"Instant Increase\" is the same one as the Orange ITEM would've applied onto the wearer. The wearer cannot be Damaged during their own turn, unless it is from their FIGHT or MAGIC, also they cannot be countered.\nRounder Badge",
+            "aliases": [
+                "rejuvenation badge"
+            ],
+            "weight": 1.0
+        },
+        "rpg badge": {
+            "title": "RPG Badge",
+            "effect": "After the first 3 turns of battle, afflict the wearer with DEXTEROUS, FOCUSED, or STRONG. The afflicted STATUS can be switched at the start of the wearer's turn. If the status afflicted by this badge is cured, re-afflict one of them after 3 turns have passed.\nSerenity Badge",
+            "aliases": [
+                "rpg badge"
+            ],
+            "weight": 1.0
+        },
+        "shelter badge": {
+            "title": "Shelter Badge",
+            "effect": "If the wearer DEFENDs, reduce their Cooldowns by 1 and retain their turn, but any Damage they deal that turn is halved. Any attacks on the DEFENDing wearer deal 1.5x the Damage taken onto the attacker.\nSpeed Badge",
+            "aliases": [
+                "shelter badge"
+            ],
+            "weight": 1.0
+        }
+    }
+}

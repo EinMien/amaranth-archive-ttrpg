@@ -1,0 +1,402 @@
+{
+    "Mega Punch": {
+        "id": 1,
+        "name": "Mega Punch",
+        "tags": "",
+        "hit": "1d20+7",
+        "damage": "4d30+20",
+        "effect": "N/A"
+    },
+    "Razor Wind": {
+        "id": 2,
+        "name": "Razor Wind",
+        "tags": "Ignores enemy DODGE",
+        "hit": "1d20+18",
+        "damage": "2d35",
+        "effect": "Takes 1 turn of concentration before use. 30+ is a Celestial HIT (x4)."
+    },
+    "Swords Dance": {
+        "id": 3,
+        "name": "Swords Dance",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "The caster's next FIGHT or Damaging MAGIC deals 2x Damage. Retains turn after use."
+    },
+    "Whirlwind": {
+        "id": 4,
+        "name": "Whirlwind",
+        "tags": "",
+        "hit": "1d20+10",
+        "damage": "4d15",
+        "effect": "The caster gains \\+5 DODGE for 3 turns. During this duration, they Counterattack on any DODGE, but if the roll was lower than 18, the Damage is halved. Also, Counterattacks have \\+20 Damage and Damage Dice Sides."
+    },
+    "Mega Kick": {
+        "id": 5,
+        "name": "Mega Kick",
+        "tags": "",
+        "hit": "1d20; 1 \\- 13 is a MISS, 14 & 15 is Critical, 16 & 17 is Celestial (4x), 18 & 19 is an Infernal (6x), 20 is a Eradicating (10x); Ignores enemy DODGE",
+        "damage": "4d30+15",
+        "effect": "HIT cannot be modified. Ignores effects that make HIT a specific roll."
+    },
+    "Toxic": {
+        "id": 6,
+        "name": "Toxic",
+        "tags": "",
+        "hit": "Guaranteed",
+        "damage": "X",
+        "effect": "X is equal to 10% of the target\u2019s MAX HP. If X would above 99, it is equal to 99 instead. The target takes the damage at the start of their next 2 turns as well."
+    },
+    "Horn Drill": {
+        "id": 7,
+        "name": "Horn Drill",
+        "tags": "",
+        "hit": "1d20-7",
+        "damage": "3d500",
+        "effect": "Ignores enemy DODGE. HIT cannot be modified. On an enemy counter, the caster instead deals 1d100 damage. Damage cannot be multiplied."
+    },
+    "Body Slam": {
+        "id": 8,
+        "name": "Body Slam",
+        "tags": "",
+        "hit": "1d20+5",
+        "damage": "15",
+        "effect": "Ignores enemy DODGE. On a HIT, afflict the target with 1d3+3 tiers of SHOCK for 3 turns."
+    },
+    "Take Down": {
+        "id": 9,
+        "name": "Take Down",
+        "tags": "",
+        "hit": "1d20+10",
+        "damage": "1d230+50",
+        "effect": "The caster takes 1/4 damage as recoil damage. If they would be KO\u2019d by this, leave them at 1 HP. Damage cannot be multiplied past 2x."
+    },
+    "Double Edge": {
+        "id": 10,
+        "name": "Double Edge",
+        "tags": "",
+        "hit": "1d20+12",
+        "damage": "1d350+150",
+        "effect": "The caster takes 1/3 damage as recoil damage. Damage cannot be multiplied past 2x."
+    },
+    "Bubble Beam": {
+        "id": 11,
+        "name": "Bubble Beam",
+        "tags": "",
+        "hit": "1d20+7",
+        "damage": "2d30",
+        "effect": "Flip a coin and apply effects.\n\\- Heads: Afflict the target with TIRED for 3 turns.\n\\- Tails: Afflict the target with TIRED for 2 turns that has halved effects rounded up. This TIRED bypassed immunities."
+    },
+    "Water Gun": {
+        "id": 12,
+        "name": "Water Gun",
+        "tags": "",
+        "hit": "1d30+10; 30 \\- 34 is Celestial (4x), 35 \\- 39 is Decimating (5x), 40+ is Inferneal (6x)",
+        "damage": "1d50+10",
+        "effect": "Afflict the target with WEAKENED for 1d2+1 turns before damage goes through."
+    },
+    "Ice Beam": {
+        "id": 13,
+        "name": "Ice Beam",
+        "tags": "Ignores enemy DODGE",
+        "hit": "1d20",
+        "damage": "5d30",
+        "effect": "On HIT, roll 1d4 and apply the effects.\n1: Nothing.\n2 \\- 3: Afflict the target with COLD for 3 turns.\n4: Afflict FROZEN onto the target for 3 turns. If they\u2019re IMMUNE, afflict them with COLD for 5 turns that deals double damage. If they\u2019re still IMMUNE, this MAGIC deals triple damage."
+    },
+    "Blizzard": {
+        "id": 14,
+        "name": "Blizzard",
+        "tags": "",
+        "hit": "1d20",
+        "damage": "3d50",
+        "effect": "AoE. Ignores enemy DODGE. Only rolls once. Each HIT target rolls 1d4 and applies the result.\n1: Target is afflicted with TIRED for 1 turn.\n2 \\- 3: Target is afflicted with COLD for 2 turns.\n4: Target is afflicted with FROZEN for 2 turns. If they\u2019re IMMUNE, they\u2019re afflicted with COLD for 4 turns that deals double damage. If they\u2019re still IMMUNE, cast this MAGIX again without effects."
+    },
+    "Hyper Beam": {
+        "id": 15,
+        "name": "Hyper Beam",
+        "tags": "",
+        "hit": "1d20; 15 \\- 17 is a Strong, 18 & 19 is a Critical, 20+ is a Devastating; Ignores enemy DODGE.",
+        "damage": "2d150+50",
+        "effect": "HIT cannot be modified. On a non-multiplied HIT, afflict the target with HYPER for 1 turn that doesn\u2019t heal. On a Strong or higher, skip the caster\u2019s next turn."
+    },
+    "Pay Day": {
+        "id": 16,
+        "name": "Pay Day",
+        "tags": "",
+        "hit": "1d20; 1 \\- 5 is a MISS, 6 \\- 10 is a WEAK (0.5x), 11 \\- 15 is a HIT, 16 \\- 19 is a Strong, 20+ is a Critical",
+        "damage": "5d50",
+        "effect": "HIT cannot be modified. X is equal to this MAGIC\u2019s HIT roll. The caster and their party gain \\+X more Poppo Food at the end of the battle."
+    },
+    "Submission": {
+        "id": 17,
+        "name": "Submission",
+        "tags": "",
+        "hit": "1d20+6; Ignores enemy DODGE.",
+        "damage": "6d66",
+        "effect": "The caster and their party take 1/6 damage of the damage dealt upon cast."
+    },
+    "Counter": {
+        "id": 18,
+        "name": "Counter",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "If the caster gets HIT before their next turn, then they can immediately use a damaging non-ultimate FIGHT/MAGIC against the attacker. (Cooldowns still apply) This cast deals 1.5x damage. If the caster is not HIT before their next real turn, they have \\+10 in damage die sides for counters until the end of the battle."
+    },
+    "Seismic Toss": {
+        "id": 19,
+        "name": "Seismic Toss",
+        "tags": "",
+        "hit": "Guaranteed",
+        "damage": "X",
+        "effect": "X is equal to the sum of the caster and their party\u2019s damage advantages and double their HIT advantages on FIGHT. If damage is above 100, lock a random button the target has for 1 turn."
+    },
+    "Rage": {
+        "id": 20,
+        "name": "Rage",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "Afflict the caster with RAGE permanently. This RAGE can go up to Tier (VI)."
+    },
+    "Mega Drain": {
+        "id": 21,
+        "name": "Mega Drain",
+        "tags": "",
+        "hit": "1d20+3",
+        "damage": "3d40+30",
+        "effect": "Heal the caster and their party for half of the damage dealt. Halve any healing over MAX HP and treat it as overheal."
+    },
+    "Solar Beam": {
+        "id": 22,
+        "name": "Solar Beam",
+        "tags": "",
+        "hit": "Guaranteed",
+        "damage": "1d300+75",
+        "effect": "Takes 1 turn to concentrate before casting. The caster takes half damage when concentrating. When the caster is HIT, roll 1d3, and on a 3, their concentration breaks."
+    },
+    "Dragon Rage": {
+        "id": 23,
+        "name": "Dragon Rage",
+        "tags": "",
+        "hit": "Guaranteed",
+        "damage": "100",
+        "effect": "Damage cannot be reduced."
+    },
+    "Thunderbolt": {
+        "id": 24,
+        "name": "Thunderbolt",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "Afflict the target with SHOCK that has 6 damage dice for 2 turns."
+    },
+    "Thunder": {
+        "id": 25,
+        "name": "Thunder",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "AoE. Afflict the targets with SHOCK that has 4 damage dice for 3 turns."
+    },
+    "Earthquake": {
+        "id": 26,
+        "name": "Earthquake",
+        "tags": "",
+        "hit": "1d20+10",
+        "damage": "2d50",
+        "effect": "AoE."
+    },
+    "Fissure": {
+        "id": 27,
+        "name": "Fissure",
+        "tags": "",
+        "hit": "1d20-3; Ignores enemy DODGE.",
+        "damage": "7d50",
+        "effect": "AoE. Only rolls once, using the lowest DODGE among the targets."
+    },
+    "Dig": {
+        "id": 28,
+        "name": "Dig",
+        "tags": "",
+        "hit": "1d20+6",
+        "damage": "5d30",
+        "effect": "Takes 1 turn to concentrate. While concentrating, the caster cannot be targeted and is immune to AoE attacks."
+    },
+    "Psychic": {
+        "id": 29,
+        "name": "Psychic",
+        "tags": "",
+        "hit": "1d20+4",
+        "damage": "2d20+5",
+        "effect": "The target is afflicted with STRANGE for 1 turn."
+    },
+    "Teleport": {
+        "id": 30,
+        "name": "Teleport",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "Apply effects corresponding to where the caster is in turn order. The caster can choose to cast without having effects, if this is done, then they can choose where they are in turn order.\n\\- 1st: The caster is afflicted with HYPER for 2 turns.\n\\- 2nd/3rd: The caster cannot be targeted for attacks and is immune to AoE attacks until the end of their next turn.\n\\- 4th/5th: The caster is afflicted with GLITCHED for 2 turns.\n\\- 6th or lower: The caster is afflicted with HEALTHY for 2 turns."
+    },
+    "Mimic": {
+        "id": 31,
+        "name": "Mimic",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "The caster targets a party member and casts the last MAGIC they casted."
+    },
+    "Double Team": {
+        "id": 32,
+        "name": "Double Team",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "Target a party member. The party member and caster gain \\+4 to DODGE for 3 turns. If they both counter the same attack, the counter damage is doubled."
+    },
+    "Reflect": {
+        "id": 33,
+        "name": "Reflect",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "The caster and their party take half damage for 2 turns. Any damage they take is dealt back to the attacker."
+    },
+    "Bide": {
+        "id": 34,
+        "name": "Bide",
+        "tags": "",
+        "hit": "1d20+10",
+        "damage": "Varies",
+        "effect": "Takes 2 turns to concentrate. The caster takes halved damage while concentrating. Upon cast, the caster deals the unreduced damage they took to the enemy(s). If there are more than one enemy, then divide the damage dealt by the amount of enemies."
+    },
+    "Metronome": {
+        "id": 35,
+        "name": "Metronome",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "Cast Metronome again, except double the move's natural HIT and Damage advantage. If there was an effect to roll lower than a d50 or to choose an effect, nullify it."
+    },
+    "Self-Destruct": {
+        "id": 36,
+        "name": "Self-Destruct",
+        "tags": "",
+        "hit": "Guaranteed",
+        "damage": "100",
+        "effect": "AoE. The caster and their party also takes the damage. Bypasses reductions and effects that make any targets untargetable."
+    },
+    "Egg Bomb": {
+        "id": 37,
+        "name": "Egg Bomb",
+        "tags": "",
+        "hit": "1d20+5 x5",
+        "damage": "3d25",
+        "effect": "N/A"
+    },
+    "Fire Blast": {
+        "id": 38,
+        "name": "Fire Blast",
+        "tags": "",
+        "hit": "1d20+6",
+        "damage": "3d30+30",
+        "effect": "AoE. HIT targets flip a coin. If tails, they are afflicted with (FULL) BURN (X) for 2 turns. If they are IMMUNE, then add \\+0.5x multiplier to this MAGIC."
+    },
+    "Swift": {
+        "id": 39,
+        "name": "Swift",
+        "tags": "",
+        "hit": "Guaranteed; Roll 1d20+7 for modifiers.",
+        "damage": "1d99",
+        "effect": "AoE."
+    },
+    "Skull Bash": {
+        "id": 40,
+        "name": "Skull Bash",
+        "tags": "",
+        "hit": "1d20+8",
+        "damage": "5d20+15",
+        "effect": "Takes 1 turn to concentrate. The caster takes half damage while concentrating, and takes 1/3 damage until the end of their next turn upon cast."
+    },
+    "Soft-Boiled": {
+        "id": 41,
+        "name": "Soft-Boiled",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "Heals the caster's party for 6d20 HP and afflicts them with (SOFT) BURN for 3 turns; any healing past MAX HP is halved and treated as overheal."
+    },
+    "Dream Eater": {
+        "id": 42,
+        "name": "Dream Eater",
+        "tags": "",
+        "hit": "1d20+7",
+        "damage": "3d20+10",
+        "effect": "Can be casted \"Dreamfully\" or \"Maliciously\". Apply effects corresponding to what is chosen.\n\\- Dreamfully: Afflict the target with TIRED for 3 turns.\n\\- Maliciously: If the target is TIRED, make HIT guaranteed and deal quintupled damage."
+    },
+    "Sky Attack": {
+        "id": 43,
+        "name": "Sky Attack",
+        "tags": "",
+        "hit": "1d20+8",
+        "damage": "5d30",
+        "effect": "Takes 1 turn to concentrate. The caster can target normally untargetable targets; unless the effect is from an ability or mechanic."
+    },
+    "Rest": {
+        "id": 44,
+        "name": "Rest",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "Overheals the caster until they are overhealed for 100 more than their MAX HP. While they remained overhealed, they are afflicted with TIRED."
+    },
+    "Thunder Wave": {
+        "id": 45,
+        "name": "Thunder Wave",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "Afflict the target with STUNNED for 2 turns. If the are immune, afflict them with SHOCK that has 1d3+4 damage dice for 1 turn."
+    },
+    "Psywave": {
+        "id": 46,
+        "name": "Psywave",
+        "tags": "",
+        "hit": "1d20+5; Guaranteed",
+        "damage": "4d50+10",
+        "effect": "N/A"
+    },
+    "Explosion": {
+        "id": 47,
+        "name": "Explosion",
+        "tags": "",
+        "hit": "Guaranteed",
+        "damage": "55",
+        "effect": "AoE. The caster and their party also takes the damage. Bypasses reductions and effects that make any targets untargetable."
+    },
+    "Rock Slide": {
+        "id": 48,
+        "name": "Rock Slide",
+        "tags": "",
+        "hit": "1d20+6",
+        "damage": "3d20+20",
+        "effect": "Roll 1d3, and on a 3, skip the target's next turn."
+    },
+    "Tri Attack": {
+        "id": 49,
+        "name": "Tri Attack",
+        "tags": "",
+        "hit": "1d20+3 x3",
+        "damage": "3d33+33",
+        "effect": "Apply effects corresponding to each successful HIT. If the target is immune to an effect from any HIT, then add \\+1x multiplier to this MAGIC for each immunity.\n\\- 1st HIT: Afflict the target with (FULL) BURN (V) for 3 turns.\n\\- 2nd HIT: Afflict the target with SHOCK that has 1d3+2 damage dice for 2 turns.\n\\- 3rd HIT: Afflict the target with COLD for 2 turns."
+    },
+    "Substitute": {
+        "id": 50,
+        "name": "Substitute",
+        "tags": "",
+        "hit": "N/A",
+        "damage": "N/A",
+        "effect": "Summons a \"Plushie \\_\" (The blank being the caster's name.) The summon has HP equal to 1/4 of the caster's HP and is kicked out of battle when KO'd. While it's in battle, the caster cannot be targeted for attacks and is immune to AoE effects."
+    }
+}
