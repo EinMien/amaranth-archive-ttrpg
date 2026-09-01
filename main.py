@@ -1,21 +1,21 @@
-﻿import discord
+import discord
 from discord.ext import commands
 from discord import app_commands
 import json
 import os
 import random
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ==========================================
 # CONFIGURATION & DATABASE HELPERS
 # ==========================================
-from dotenv import load_dotenv
-load_dotenv()
+TOKEN = os.getenv("BOT_TOKEN")
 
-TOKEN = os.getenv("DISCORD_TOKEN")
-
-# Replace with the actual DM/Admin User IDs
-ADMIN_USER_IDS = [int(x.strip()) for x in os.getenv("ADMIN_USER_IDS", "").split(",") if x.strip()]
+# Extract DM/Admin User IDs from .env
+ALLOWED_USER_IDS = [int(x.strip()) for x in os.getenv("ALLOWED_USER_IDS", "").split(",") if x.strip()]
 
 def load_data(filename):
     filepath = f"data/{filename}.json"
@@ -102,30 +102,75 @@ def get_active_name(interaction: discord.Interaction) -> str:
         return db["players"][player_key]["active"]
     return interaction.user.display_name
 
-def get_allowed_targets(interaction: discord.Interaction) -> list[str]:
+def parse_target(target: str, default_guild: str) -> tuple[str, str]:
+    if target and "|" in target:
+        return target.split("|", 1)
+    return target, default_guild
+
+def get_allowed_targets(interaction: discord.Interaction) -> list[dict]:
     player_key = f"{interaction.user.id}_{interaction.guild_id}"
     guild_id = str(interaction.guild_id) if interaction.guild_id else None
     
-    my_chars = db["players"].get(player_key, {}).get("roster", [])
+    my_chars = []
+    for p_key, pdata in db["players"].items():
+        if p_key.startswith(f"{interaction.user.id}_"):
+            gid = p_key.split("_", 1)[1] if "_" in p_key else guild_id
+            for c in pdata.get("roster", []):
+                my_chars.append({"name": c, "guild": gid})
     
-    if interaction.user.id in ADMIN_USER_IDS:
+    if interaction.user.id in ALLOWED_USER_IDS:
         scope = db.get("dms", {}).get(str(interaction.user.id), {}).get("target_scope", "global")
         if scope == "global":
             all_chars = []
-            for pdata in db["players"].values():
-                all_chars.extend(pdata.get("roster", []))
+            for p_key, pdata in db["players"].items():
+                gid = p_key.split("_", 1)[1] if "_" in p_key else guild_id
+                for c in pdata.get("roster", []):
+                    all_chars.append({"name": c, "guild": gid})
             
             if guild_id and guild_id in db.get("wallet", {}):
                 for p_name in db["wallet"][guild_id].get("parties", {}).keys():
-                    all_chars.append(f"Storage: {p_name}")
-            return list(set(all_chars))
+                    all_chars.append({"name": f"Storage: {p_name}", "guild": guild_id})
+            
+            # Deduplicate by name and guild
+            seen = set()
+            dedup = []
+            for c in all_chars:
+                k = (c["name"], c["guild"])
+                if k not in seen:
+                    seen.add(k)
+                    dedup.append(c)
+            return dedup
+            
         elif scope == "own":
             return my_chars
+            
+        elif scope == "server" and guild_id:
+            server_chars = []
+            for p_uid, pdata in db["players"].items():
+                if p_uid.endswith(f"_{guild_id}"):
+                    for c in pdata.get("roster", []):
+                        server_chars.append({"name": c, "guild": guild_id})
+            if guild_id in db.get("wallet", {}):
+                for p_name in db["wallet"][guild_id].get("parties", {}).keys():
+                    server_chars.append({"name": f"Storage: {p_name}", "guild": guild_id})
+            return server_chars
+            
         elif scope == "party" and guild_id:
             active = get_active_party(guild_id)
+            res = list(my_chars)
             if guild_id in db.get("wallet", {}) and active in db["wallet"][guild_id].get("parties", {}):
-                return list(set(db["wallet"][guild_id]["parties"][active].get("members", []) + my_chars + [f"Storage: {active}"]))
-            return my_chars
+                for c in db["wallet"][guild_id]["parties"][active].get("members", []):
+                    res.append({"name": c, "guild": guild_id})
+                res.append({"name": f"Storage: {active}", "guild": guild_id})
+            # Deduplicate
+            seen = set()
+            dedup = []
+            for c in res:
+                k = (c["name"], c["guild"])
+                if k not in seen:
+                    seen.add(k)
+                    dedup.append(c)
+            return dedup
             
     allowed = list(my_chars)
     if guild_id and guild_id in db.get("wallet", {}):
@@ -133,29 +178,44 @@ def get_allowed_targets(interaction: discord.Interaction) -> list[str]:
         active_char = db["players"].get(player_key, {}).get("active")
         
         # Add members of the active character's party
+        found = False
         if active_char:
             for p_name, p_data in parties.items():
                 if active_char in p_data.get("members", []):
-                    allowed.extend(p_data.get("members", []))
-                    allowed.append(f"Storage: {p_name}")
+                    for c in p_data.get("members", []): allowed.append({"name": c, "guild": guild_id})
+                    allowed.append({"name": f"Storage: {p_name}", "guild": guild_id})
+                    found = True
                     break
         
         # If active character isn't in a party, add members of any party they're in
-        for c in my_chars:
-            for p_name, p_data in parties.items():
-                if c in p_data.get("members", []):
-                    allowed.extend(p_data.get("members", []))
-                    allowed.append(f"Storage: {p_name}")
-                    
-    return list(set(allowed))
+        if not found:
+            for c_obj in my_chars:
+                for p_name, p_data in parties.items():
+                    if c_obj["name"] in p_data.get("members", []):
+                        for c in p_data.get("members", []): allowed.append({"name": c, "guild": guild_id})
+                        allowed.append({"name": f"Storage: {p_name}", "guild": guild_id})
+                        
+    # Deduplicate
+    seen = set()
+    dedup = []
+    for c in allowed:
+        k = (c["name"], c["guild"])
+        if k not in seen:
+            seen.add(k)
+            dedup.append(c)
+    return dedup
 
 def validate_target(interaction: discord.Interaction, target: str) -> bool:
     if not target: return True
     allowed = get_allowed_targets(interaction)
-    return target in allowed
+    t_name, t_guild = parse_target(target, str(interaction.guild_id))
+    for c in allowed:
+        if c["name"] == t_name and (c["guild"] == t_guild or not t_guild):
+            return True
+    return False
 
 def can_edit(interaction: discord.Interaction, char_name: str) -> bool:
-    if interaction.user.id in ADMIN_USER_IDS:
+    if interaction.user.id in ALLOWED_USER_IDS:
         return True
     return validate_target(interaction, char_name)
 
@@ -221,7 +281,7 @@ def add_chunked_field(embed: discord.Embed, name: str, value: str):
         chunks.append(text_remaining)
         
     for i, chunk in enumerate(chunks):
-        title = name if i == 0 else f"â†³ {name} (Pt. {i+1})"
+        title = name if i == 0 else f"↳ {name} (Pt. {i+1})"
         if len(title) > 256:
             title = title[:253] + "..."
         if current_size + len(title) + len(chunk) > 5900:
@@ -254,7 +314,7 @@ logger.addHandler(handler)
 async def global_ui_error(self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item):
     logger.error(f"UI Error on {item}:", exc_info=error)
     try:
-        msg = "âŒ An internal UI error occurred. Admin has been notified."
+        msg = "❌ An internal UI error occurred. Admin has been notified."
         if interaction.response.is_done():
             await interaction.followup.send(msg, ephemeral=True)
         else:
@@ -271,7 +331,7 @@ bot = TTRPGBot()
 async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
     logger.error(f"Error in command '{interaction.command.name if interaction.command else 'Unknown'}':", exc_info=error)
     try:
-        msg = "âŒ An internal error occurred. This has been logged for dev analysis."
+        msg = "❌ An internal error occurred. This has been logged for dev analysis."
         if interaction.response.is_done():
             await interaction.followup.send(msg, ephemeral=True)
         else:
@@ -287,6 +347,16 @@ async def on_ready():
 # ==========================================
 # AUTOCOMPLETE LOGIC
 # ==========================================
+
+async def badge_group_auto(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+    return [app_commands.Choice(name=g, value=g) for g in db["badges"].keys() if current.lower() in g.lower()][:25]
+
+async def badge_name_auto(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+    group = interaction.namespace.group
+    if not group or group not in db["badges"]: return []
+    matches = [k for k in db["badges"][group].keys() if current.lower() in k.lower()]
+    return [app_commands.Choice(name=m, value=m) for m in matches][:25]
+
 async def status_group_auto(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
     return [app_commands.Choice(name=g, value=g) for g in db["groups"]["statuses"].keys() if current.lower() in g.lower()][:25]
 
@@ -344,13 +414,42 @@ async def character_auto(interaction: discord.Interaction, current: str) -> list
     if player_key not in db["players"]: return []
     return [app_commands.Choice(name=c, value=c) for c in db["players"][player_key].get("roster", []) if current.lower() in c.lower()][:25]
 
+def _format_target_choices(interaction: discord.Interaction, allowed: list[dict], current: str, exclude_storage: bool = False) -> list[app_commands.Choice[str]]:
+    name_counts = {}
+    for c in allowed:
+        n = c["name"]
+        name_counts[n] = name_counts.get(n, 0) + 1
+        
+    choices = []
+    for c in allowed:
+        n = c["name"]
+        g = c["guild"]
+        
+        if exclude_storage and n.startswith("Storage: "):
+            continue
+            
+        if current.lower() not in n.lower():
+            continue
+            
+        display_name = n
+        if g and (g != str(interaction.guild_id) or name_counts[n] > 1):
+            guild_obj = bot.get_guild(int(g))
+            g_name = guild_obj.name if guild_obj else "Unknown Server"
+            display_name = f"{n} ({g_name})"
+            
+        value = f"{n}|{g}" if g else n
+        choices.append(app_commands.Choice(name=display_name[:100], value=value[:100]))
+        if len(choices) >= 25:
+            break
+    return choices
+
 async def target_auto(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
     allowed = get_allowed_targets(interaction)
-    return [app_commands.Choice(name=c, value=c) for c in allowed if current.lower() in c.lower()][:25]
+    return _format_target_choices(interaction, allowed, current)
 
 async def character_target_auto(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
     allowed = get_allowed_targets(interaction)
-    return [app_commands.Choice(name=c, value=c) for c in allowed if current.lower() in c.lower() and not c.startswith("Storage: ")][:25]
+    return _format_target_choices(interaction, allowed, current, exclude_storage=True)
 
 async def magic_name_auto(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
     char_name = interaction.namespace.target or get_active_name(interaction)
@@ -458,27 +557,62 @@ class HelpView(discord.ui.View):
     async def btn_bye(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message(f"Aww... Goodbye {interaction.user.mention}!")
 
+def chunk_text(name: str, text: str):
+    if len(name) > 250: name = name[:247] + "..."
+    if len(text) <= 1024:
+        return [(name, text)]
+    text_remaining = text
+    chunks = []
+    while len(text_remaining) > 1024:
+        split_idx = text_remaining.rfind('\n', 0, 1024)
+        if split_idx == -1: split_idx = text_remaining.rfind(' ', 0, 1024)
+        if split_idx == -1: split_idx = 1024
+        chunks.append(text_remaining[:split_idx])
+        text_remaining = text_remaining[split_idx:].lstrip()
+    if text_remaining:
+        chunks.append(text_remaining)
+    result = []
+    for i, chunk in enumerate(chunks):
+        title = name if i == 0 else f"↳ {name} (Pt. {i+1})"
+        if len(title) > 256: title = title[:253] + "..."
+        result.append((title, chunk))
+    return result
+
 class MovesheetView(discord.ui.View):
     def __init__(self, char_name: str, char_data: dict, guild_id: str = None):
         super().__init__(timeout=None)
         self.char_name = char_name
         self.char_data = char_data
         self.guild_id = guild_id
+        self.page = 0
+        self.max_page = 0
+        self.current_tab = "stats"
+
+    def switch_tab(self, tab_name: str):
+        if self.current_tab != tab_name:
+            self.current_tab = tab_name
+            self.page = 0
+
+    def update_buttons(self):
+        for child in self.children:
+            if child.custom_id == "ms_prev":
+                child.disabled = (self.page <= 0)
+            elif child.custom_id == "ms_next":
+                child.disabled = (self.page >= self.max_page)
 
     def build_stats_embed(self):
         stats = self.char_data.get("stats", {})
         equips = self.char_data.get("equips", {})
         ability = self.char_data.get("ability", {})
         
-        embed = discord.Embed(title=f"ðŸ“Š {self.char_name}'s Stats", color=discord.Color.blurple())
-        embed.add_field(name="HP", value=f"{stats.get('current_hp', 0)} / {stats.get('max_hp', 0)}", inline=False)
+        fields = []
+        fields.append(("HP", f"{stats.get('current_hp', 0)} / {stats.get('max_hp', 0)}"))
         
         fight_str = f"**HIT:** {stats.get('fight_hit', '+0')} | **Damage:** {stats.get('fight_damage', '+0')} | **DODGE:** {stats.get('dodge', '+0')}"
         fight_effect = stats.get('fight_effect', 'None')
         if fight_effect and fight_effect.lower() != "none":
             fight_str += f"\n**Effect:** {fight_effect}"
-            
-        embed.add_field(name="FIGHT and DODGE", value=fight_str, inline=False)
+        fields.extend(chunk_text("FIGHT and DODGE", fight_str))
         
         max_hearts = 3
         if self.guild_id and self.guild_id in db.get("wallet", {}):
@@ -497,40 +631,78 @@ class MovesheetView(discord.ui.View):
             f"**Crystal Hearts:** {stats.get('crystal_hearts', 0)}/{max_hearts}\n"
             f"**Dimensional Satchel:** {stats.get('dimensional_satchel', False)}"
         )
-        embed.add_field(name="Equips", value=equip_str, inline=False)
+        fields.extend(chunk_text("Equips", equip_str))
+        fields.extend(chunk_text(f"ABILITY: {ability.get('name', 'None')}", ability.get('effect', 'None')))
         
-        add_chunked_field(embed, f"ABILITY: {ability.get('name', 'None')}", ability.get('effect', 'None'))
+        pages = []
+        current_fields = []
+        current_len = 0
+        for name, value in fields:
+            if current_len + len(name) + len(value) > 4000 or len(current_fields) >= 8:
+                pages.append(current_fields)
+                current_fields = []
+                current_len = 0
+            current_fields.append((name, value))
+            current_len += len(name) + len(value)
+        if current_fields:
+            pages.append(current_fields)
+            
+        self.max_page = max(0, len(pages) - 1)
+        self.page = min(self.page, self.max_page)
         
+        embed = discord.Embed(title=f"📊 {self.char_name}'s Stats", color=discord.Color.blurple())
+        for name, value in pages[self.page]:
+            embed.add_field(name=name, value=value, inline=False)
+            
         chocs = f"White: {stats.get('choc_white', 0)} | Milk: {stats.get('choc_milk', 0)} | Dark: {stats.get('choc_dark', 0)}"
-        embed.set_footer(text=f"Chocolate Ratings: {chocs}")
+        footer = f"Chocolate Ratings: {chocs}"
+        if self.max_page > 0:
+            footer += f" | Page {self.page + 1}/{self.max_page + 1}"
+        embed.set_footer(text=footer)
         return embed
 
     def build_magic_embed(self):
-        embed = discord.Embed(title=f"âœ¨ {self.char_name}'s Magic", color=discord.Color.purple())
+        embed = discord.Embed(title=f"✨ {self.char_name}'s Magic", color=discord.Color.purple())
         magic_dict = self.char_data.get("magic", {})
         
         if not magic_dict:
             embed.description = "*No MAGIC learned yet.*"
-        else:
-            for m_name, m_data in magic_dict.items():
-                is_ult = m_data.get('is_ultimate', False)
-                header = f"ðŸŒŸ {m_name} (Ultimate)" if is_ult else f"{m_name}"
-                
-                body = (
-                    f"**HIT:** {m_data.get('hit', 'N/A')} | "
-                    f"**Damage:** {m_data.get('damage', 'N/A')}\n"
-                    f"**Effect:** {m_data.get('effect', 'None')}\n"
-                    f"**Cooldown:** {m_data.get('cooldown', '0')}"
-                )
-                add_chunked_field(embed, header, body)
-                        
+            self.max_page = 0
+            return embed
+            
+        items = list(magic_dict.items())
+        items_per_page = 4
+        self.max_page = max(0, (len(items) - 1) // items_per_page)
+        self.page = min(self.page, self.max_page)
+        
+        start = self.page * items_per_page
+        end = start + items_per_page
+        page_items = items[start:end]
+        
+        for m_name, m_data in page_items:
+            is_ult = m_data.get('is_ultimate', False)
+            header = f"🌟 {m_name} (Ultimate)" if is_ult else f"{m_name}"
+            
+            body = (
+                f"**HIT:** {m_data.get('hit', 'N/A')} | "
+                f"**Damage:** {m_data.get('damage', 'N/A')}\n"
+                f"**Effect:** {m_data.get('effect', 'None')}\n"
+                f"**Cooldown:** {m_data.get('cooldown', '0')}"
+            )
+            for f_name, f_val in chunk_text(header, body):
+                embed.add_field(name=f_name, value=f_val, inline=False)
+            
+        if self.max_page > 0:
+            embed.set_footer(text=f"Page {self.page + 1}/{self.max_page + 1}")
+            
         return embed
 
     def build_inventory_embed(self):
-        embed = discord.Embed(title=f"ðŸŽ’ {self.char_name}'s Inventory", color=discord.Color.green())
+        embed = discord.Embed(title=f"🎒 {self.char_name}'s Inventory", color=discord.Color.green())
         inv = self.char_data.get("inventory", {})
         if not inv:
             embed.description = "*Inventory is empty.*"
+            self.max_page = 0
             return embed
             
         grouped = {}
@@ -539,7 +711,7 @@ class MovesheetView(discord.ui.View):
             if name not in grouped: grouped[name] = []
             grouped[name].append(data)
             
-        items_text = ""
+        lines = []
         for name in sorted(grouped.keys()):
             instances = grouped[name]
             pref = instances[0].get("preference", "Neutral")
@@ -555,17 +727,33 @@ class MovesheetView(discord.ui.View):
                     mu = inst.get("max_uses", 1)
                     uses_list.append(f"{u}/{mu}" if isinstance(u, int) else str(u))
             
-            items_text += f"â€¢ **{name}** x{count} *(Pref: {pref})* - Uses: [{', '.join(uses_list)}]\n"
+            lines.append(f"• **{name}** x{count} *(Pref: {pref})* - Uses: [{', '.join(uses_list)}]")
             
-        embed.description = items_text
+        pages = []
+        current_desc = ""
+        for line in lines:
+            if len(current_desc) + len(line) + 1 > 3500 or current_desc.count('\n') >= 20:
+                pages.append(current_desc.strip())
+                current_desc = ""
+            current_desc += line + "\n"
+        if current_desc:
+            pages.append(current_desc.strip())
+            
+        self.max_page = max(0, len(pages) - 1)
+        self.page = min(self.page, self.max_page)
+        
+        embed.description = pages[self.page]
+        if self.max_page > 0:
+            embed.set_footer(text=f"Page {self.page + 1}/{self.max_page + 1}")
         return embed
 
     def build_preferences_embed(self):
-        embed = discord.Embed(title=f"â¤ï¸ {self.char_name}'s Item Preferences", color=discord.Color.teal())
+        embed = discord.Embed(title=f"❤️ {self.char_name}'s Item Preferences", color=discord.Color.teal())
         prefs = self.char_data.get("preferences", {})
         
         if not prefs:
             embed.description = "*All items are currently at Neutral preference.*"
+            self.max_page = 0
             return embed
             
         tiers = {"Obsessed": [], "Well-Liked": [], "Disliked": [], "Allergic": []}
@@ -588,21 +776,38 @@ class MovesheetView(discord.ui.View):
         if not has_any:
             embed.description = "*All items are currently at Neutral preference.*"
             
+        self.max_page = 0
         return embed
 
-    @discord.ui.button(label="Base Stats", style=discord.ButtonStyle.primary, custom_id="ms_stats")
+    def get_current_embed(self):
+        if self.current_tab == "stats": return self.build_stats_embed()
+        elif self.current_tab == "magic": return self.build_magic_embed()
+        elif self.current_tab == "inv": return self.build_inventory_embed()
+        elif self.current_tab == "prefs": return self.build_preferences_embed()
+        elif self.current_tab == "trap": return self.build_trap_embed()
+        return self.build_stats_embed()
+
+    @discord.ui.button(label="Base Stats", style=discord.ButtonStyle.primary, custom_id="ms_stats", row=0)
     async def btn_stats(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.build_stats_embed())
+        self.switch_tab("stats")
+        embed = self.get_current_embed()
+        self.update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
 
-    @discord.ui.button(label="Magic", style=discord.ButtonStyle.primary, custom_id="ms_magic")
+    @discord.ui.button(label="Magic", style=discord.ButtonStyle.primary, custom_id="ms_magic", row=0)
     async def btn_magic(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.build_magic_embed())
+        self.switch_tab("magic")
+        embed = self.get_current_embed()
+        self.update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
 
-    @discord.ui.button(label="Inventory", style=discord.ButtonStyle.primary, custom_id="ms_inv")
+    @discord.ui.button(label="Inventory", style=discord.ButtonStyle.primary, custom_id="ms_inv", row=0)
     async def btn_inv(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.build_inventory_embed())
-
-
+        self.switch_tab("inv")
+        embed = self.get_current_embed()
+        self.update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
+        
     def build_trap_embed(self) -> discord.Embed:
         ostats = self.char_data.get("other_stats", {})
         caut = ostats.get("cautiousness", "0")
@@ -613,43 +818,69 @@ class MovesheetView(discord.ui.View):
         r_name = ostats.get("race_name", "None")
         r_eff = ostats.get("race_effect", "None")
         
-        embed = discord.Embed(title=f"âš™ï¸ Trap & Race Stats: {self.char_name}", color=discord.Color.dark_grey())
+        embed = discord.Embed(title=f"⚙️ Trap & Race Stats: {self.char_name}", color=discord.Color.dark_grey())
         embed.add_field(name="Cautiousness", value=caut, inline=True)
         embed.add_field(name="Dexterity", value=dex, inline=True)
         embed.add_field(name="Timer", value=timer, inline=True)
         
         if t_name != "None":
-            add_chunked_field(embed, f"ðŸª¤ Trap Quirk: {t_name}", t_eff)
+            for n, v in chunk_text(f"🪤 Trap Quirk: {t_name}", t_eff):
+                embed.add_field(name=n, value=v, inline=False)
         else:
-            embed.add_field(name="ðŸª¤ Trap Quirk", value="None", inline=False)
+            embed.add_field(name="🪤 Trap Quirk", value="None", inline=False)
             
         if r_name != "None":
-            add_chunked_field(embed, f"ðŸŽï¸ Race Whim: {r_name}", r_eff)
+            for n, v in chunk_text(f"🏎️ Race Whim: {r_name}", r_eff):
+                embed.add_field(name=n, value=v, inline=False)
         else:
-            embed.add_field(name="ðŸŽï¸ Race Whim", value="None", inline=False)
+            embed.add_field(name="🏎️ Race Whim", value="None", inline=False)
             
+        self.max_page = 0
         return embed
 
-    @discord.ui.button(label="Trap & Race", style=discord.ButtonStyle.primary, custom_id="ms_trap")
-    async def btn_trap(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.build_trap_embed())
+    @discord.ui.button(label="Trap & Race", style=discord.ButtonStyle.primary, custom_id="ms_trap", row=0)
+    async def btn_trap(self, interaction, button):
+        self.switch_tab("trap")
+        embed = self.get_current_embed()
+        self.update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
 
-    @discord.ui.button(label="Preferences", style=discord.ButtonStyle.primary, custom_id="ms_prefs")
-    async def btn_prefs(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.build_preferences_embed())
+    @discord.ui.button(label="Preferences", style=discord.ButtonStyle.primary, custom_id="ms_prefs", row=0)
+    async def btn_prefs(self, interaction, button):
+        self.switch_tab("prefs")
+        embed = self.get_current_embed()
+        self.update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    @discord.ui.button(label="◀ Prev Page", style=discord.ButtonStyle.secondary, custom_id="ms_prev", disabled=True, row=1)
+    async def btn_prev(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.page = max(0, self.page - 1)
+        embed = self.get_current_embed()
+        self.update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    @discord.ui.button(label="Next Page ▶", style=discord.ButtonStyle.secondary, custom_id="ms_next", disabled=True, row=1)
+    async def btn_next(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.page = min(self.max_page, self.page + 1)
+        embed = self.get_current_embed()
+        self.update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
+
+
 
 # ==========================================
 # ITEM INSTANCE VIEWS
 # ==========================================
-async def process_item_use(interaction: discord.Interaction, target_name: str, author_name: str, owner_id: str, uid: str, action: str = "use", use_times: int = 1, guild_id: str = None):
+async def process_item_use(interaction, target_name: str, author_name: str, owner_id: str, uid: str, action: str = "use", use_times: int = 1, guild_id: str = None):
     if author_name.startswith("Storage: "):
         party_name = author_name[9:]
-        inv = db["wallet"][guild_id]["parties"][party_name]["storage"]
+        wallet = db["wallet"][guild_id]["parties"][party_name]
+        inv = wallet.get("storages", {}).get("Main", {})
     else:
         inv = db["players"][owner_id]["characters"][author_name]["inventory"]
         
     if uid not in inv:
-        return await interaction.response.send_message("âŒ Item instance not found.", ephemeral=True)
+        return await interaction.response.send_message("❌ Item instance not found.", ephemeral=True)
         
     item_inst = inv[uid]
     item_name = item_inst.get("name", uid) 
@@ -665,7 +896,7 @@ async def process_item_use(interaction: discord.Interaction, target_name: str, a
             save_data("wallet", db["wallet"])
         else:
             save_data("players", db["players"])
-        return await interaction.response.send_message(f"ðŸ—‘ï¸ Removed one instance of **{item_name}** from **{author_name}**.", ephemeral=True)
+        return await interaction.response.send_message(f"🗑️ Removed one instance of **{item_name}** from **{author_name}**.", ephemeral=True)
     
     times_text = f" {use_times} times" if use_times > 1 else ""
     
@@ -675,7 +906,7 @@ async def process_item_use(interaction: discord.Interaction, target_name: str, a
         uses = item_inst.get("uses", 1)
         if isinstance(uses, int):
             if uses < use_times:
-                return await interaction.response.send_message(f"âŒ This instance only has {uses} uses left.", ephemeral=True)
+                return await interaction.response.send_message(f"❌ This instance only has {uses} uses left.", ephemeral=True)
             item_inst["uses"] -= use_times
             if item_inst["uses"] <= 0:
                 del inv[uid]
@@ -699,8 +930,9 @@ async def process_item_use(interaction: discord.Interaction, target_name: str, a
     if flavor:
         desc += f"\n\n*\"{flavor}\"*"
         
-    embed = discord.Embed(title=f"ðŸŽ’ {author_name} used {item_name}!", description=desc, color=discord.Color.gold())
+    embed = discord.Embed(title=f"🎒 {author_name} used {item_name}!", description=desc, color=discord.Color.gold())
     await interaction.response.send_message(embed=embed)
+
 
 class DashboardSelect(discord.ui.Select):
     def __init__(self, action: str, placeholder: str, options: list, row: int):
@@ -721,11 +953,12 @@ class DashboardButton(discord.ui.Button):
         await view.process_pagination(interaction, self.action_type)
 
 class StorageDashboardView(discord.ui.View):
-    def __init__(self, char_name: str, guild_id: str, target_party: str, inv_page: int = 0, sto_page: int = 0):
+    def __init__(self, char_name: str, guild_id: str, target_party: str, inv_page: int = 0, sto_page: int = 0, storage_name: str = "Main"):
         super().__init__(timeout=None)
         self.char_name = char_name
         self.guild_id = guild_id
         self.target_party = target_party
+        self.storage_name = storage_name
         self.inv_page = inv_page
         self.sto_page = sto_page
         self.refresh_state()
@@ -744,9 +977,9 @@ class StorageDashboardView(discord.ui.View):
         limit = 20 if stats.get("dimensional_satchel", False) else 16
         
         wallet = db["wallet"][self.guild_id]["parties"][self.target_party]
-        storage = wallet.get("storage", {})
+        storage = wallet.get("storages", {}).get(self.storage_name, {})
         
-        embed = discord.Embed(title=f"ðŸ“¦ Storage Dashboard: {self.target_party}", description=f"Transferring items with **{self.char_name}**", color=discord.Color.dark_grey())
+        embed = discord.Embed(title=f"📦 Storage Dashboard: {self.target_party} ({self.storage_name})", description=f"Transferring items with **{self.char_name}**", color=discord.Color.dark_grey())
         embed.add_field(name="Inventory", value=f"{len(char_inv)} / {limit} items", inline=True)
         embed.add_field(name="Storage", value=f"{len(storage)} items", inline=True)
         return embed
@@ -757,8 +990,11 @@ class StorageDashboardView(discord.ui.View):
         if not pdata: return
         
         wallet = db["wallet"][self.guild_id]["parties"][self.target_party]
-        if "storage" not in wallet: wallet["storage"] = {}
-        storage = wallet["storage"]
+        if "storages" not in wallet:
+            wallet["storages"] = {}
+            if "storage" in wallet: wallet["storages"]["Main"] = wallet.pop("storage")
+        if self.storage_name not in wallet["storages"]: wallet["storages"][self.storage_name] = {}
+        storage = wallet["storages"][self.storage_name]
         
         char_inv = pdata["characters"][self.char_name].setdefault("inventory", {})
         
@@ -792,8 +1028,8 @@ class StorageDashboardView(discord.ui.View):
             self.add_item(discord.ui.Select(placeholder="Inventory is empty.", options=[discord.SelectOption(label="Empty", value="empty")], disabled=True, row=0, custom_id="empty_inv"))
             
         if self.inv_total > 1:
-            self.add_item(DashboardButton("â—€ Prev Inv", "inv_prev", 1, self.inv_page == 0))
-            self.add_item(DashboardButton("Next Inv â–¶", "inv_next", 1, self.inv_page == self.inv_total - 1))
+            self.add_item(DashboardButton("◀ Prev Inv", "inv_prev", 1, self.inv_page == 0))
+            self.add_item(DashboardButton("Next Inv ▶", "inv_next", 1, self.inv_page == self.inv_total - 1))
             
         if sto_options:
             self.add_item(DashboardSelect("withdraw", "Select items to withdraw...", sto_options, 2))
@@ -801,8 +1037,8 @@ class StorageDashboardView(discord.ui.View):
             self.add_item(discord.ui.Select(placeholder="Storage is empty.", options=[discord.SelectOption(label="Empty", value="empty")], disabled=True, row=2, custom_id="empty_sto"))
             
         if self.sto_total > 1:
-            self.add_item(DashboardButton("â—€ Prev Storage", "sto_prev", 3, self.sto_page == 0))
-            self.add_item(DashboardButton("Next Storage â–¶", "sto_next", 3, self.sto_page == self.sto_total - 1))
+            self.add_item(DashboardButton("◀ Prev Storage", "sto_prev", 3, self.sto_page == 0))
+            self.add_item(DashboardButton("Next Storage ▶", "sto_next", 3, self.sto_page == self.sto_total - 1))
 
     async def process_pagination(self, interaction: discord.Interaction, action: str):
         if action == "inv_prev": self.inv_page -= 1
@@ -817,25 +1053,25 @@ class StorageDashboardView(discord.ui.View):
         uid, pdata = self.get_char_pdata()
         char_inv = pdata["characters"][self.char_name]["inventory"]
         wallet = db["wallet"][self.guild_id]["parties"][self.target_party]
-        storage = wallet["storage"]
+        storage = wallet["storages"][self.storage_name]
         
         if action == "deposit":
             for u in uids:
                 if u in char_inv:
                     storage[u] = char_inv[u]
                     del char_inv[u]
-            msg = f"ðŸ“¥ Deposited {len(uids)} items."
+            msg = f"📥 Deposited {len(uids)} items."
         else:
             stats = pdata["characters"][self.char_name].get("stats", {})
             limit = 20 if stats.get("dimensional_satchel", False) else 16
             if len(char_inv) + len(uids) > limit:
-                return await interaction.response.send_message(f"âŒ **{self.char_name}** does not have enough inventory space (Limit: {limit}).", ephemeral=True)
+                return await interaction.response.send_message(f"❌ **{self.char_name}** does not have enough inventory space (Limit: {limit}).", ephemeral=True)
                 
             for u in uids:
                 if u in storage:
                     char_inv[u] = storage[u]
                     del storage[u]
-            msg = f"ðŸ“¤ Withdrew {len(uids)} items."
+            msg = f"📤 Withdrew {len(uids)} items."
             
         save_data("wallet", db["wallet"])
         save_data("players", db["players"])
@@ -907,7 +1143,7 @@ async def cmd_addchar(interaction: discord.Interaction, name: str):
     db["players"][uid]["active"] = name
     save_data("players", db["players"])
     view = CharacterBuilderView(name, uid)
-    await interaction.response.send_message(f"âœ… Character **{name}** registered! Use the dashboard below to set them up:", view=view, ephemeral=True)
+    await interaction.response.send_message(f"✅ Character **{name}** registered! Use the dashboard below to set them up:", view=view, ephemeral=True)
 
 @bot.tree.command(name="setchar", description="Switch your active character")
 @app_commands.autocomplete(name=character_auto)
@@ -916,9 +1152,9 @@ async def cmd_setchar(interaction: discord.Interaction, name: str):
     if uid in db["players"] and name in db["players"][uid].get("roster", []):
         db["players"][uid]["active"] = name
         save_data("players", db["players"])
-        await interaction.response.send_message(f"ðŸ”„ Active character set to **{name}**.", ephemeral=True)
+        await interaction.response.send_message(f"🔄 Active character set to **{name}**.", ephemeral=True)
     else:
-        await interaction.response.send_message("âŒ Character not found. Use `/addchar` first.", ephemeral=True)
+        await interaction.response.send_message("❌ Character not found. Use `/addchar` first.", ephemeral=True)
 
 @bot.tree.command(name="removechar", description="Remove a character from your roster")
 @app_commands.autocomplete(name=character_auto)
@@ -931,26 +1167,89 @@ async def cmd_removechar(interaction: discord.Interaction, name: str):
         if name in db["players"][uid].get("characters", {}):
             del db["players"][uid]["characters"][name]
         save_data("players", db["players"])
-        await interaction.response.send_message(f"ðŸ—‘ï¸ Character **{name}** removed.", ephemeral=True)
+        await interaction.response.send_message(f"🗑️ Character **{name}** removed.", ephemeral=True)
     else:
-        await interaction.response.send_message("âŒ Character not found.", ephemeral=True)
+        await interaction.response.send_message("❌ Character not found.", ephemeral=True)
 
 @bot.tree.command(name="movesheet", description="View a character's stats, magic, and inventory")
 @app_commands.autocomplete(target=character_target_auto)
 @app_commands.describe(target="Leave blank to view your active character")
 async def cmd_movesheet(interaction: discord.Interaction, target: str = None):
     if target and target.startswith("Storage: "):
-        return await interaction.response.send_message("âŒ Cannot view movesheet for a party storage.", ephemeral=True)
+        return await interaction.response.send_message("❌ Cannot view movesheet for a party storage.", ephemeral=True)
     if target and not validate_target(interaction, target):
-        return await interaction.response.send_message("âŒ Target out of scope.", ephemeral=True)
-    char_name = target if target else get_active_name(interaction)
-    char_data = get_char_data(char_name, str(interaction.guild_id))
+        return await interaction.response.send_message("❌ Target out of scope.", ephemeral=True)
+    char_name, target_guild = parse_target(target if target else get_active_name(interaction), str(interaction.guild_id))
+    char_data = get_char_data(char_name, target_guild)
     
     if not char_data:
-        return await interaction.response.send_message(f"âŒ Could not find data for **{char_name}**.", ephemeral=True)
+        return await interaction.response.send_message(f"❌ Could not find data for **{char_name}**.", ephemeral=True)
         
-    view = MovesheetView(char_name, char_data, str(interaction.guild_id))
-    await interaction.response.send_message(embed=view.build_stats_embed(), view=view)
+    view = MovesheetView(char_name, char_data, target_guild)
+    embed = view.build_stats_embed()
+    view.update_buttons()
+    await interaction.response.send_message(embed=embed, view=view)
+
+
+# --- SERVER MANAGEMENT COMMANDS ---
+@bot.tree.command(name="transferchar", description="Transfer a character from another server to the current server")
+@app_commands.describe(character="The character to transfer")
+@app_commands.autocomplete(character=character_target_auto)
+async def cmd_transferchar(interaction: discord.Interaction, character: str):
+    char_name, target_guild = parse_target(character, str(interaction.guild_id))
+    
+    if not target_guild or target_guild == str(interaction.guild_id):
+        return await interaction.response.send_message("❌ This character is already on this server.", ephemeral=True)
+        
+    origin_key = None
+    for p_key, pdata in db["players"].items():
+        if p_key.endswith(f"_{target_guild}") and "characters" in pdata and char_name in pdata["characters"]:
+            origin_key = p_key
+            break
+            
+    if not origin_key:
+        return await interaction.response.send_message("❌ Character not found.", ephemeral=True)
+        
+    owner_id = origin_key.split("_")[0]
+    
+    # Permission check: Is the user the owner, or are they a DM/Admin?
+    is_admin = interaction.user.id in ALLOWED_USER_IDS
+    is_owner = str(interaction.user.id) == owner_id
+    
+    if not is_admin and not is_owner:
+        return await interaction.response.send_message("❌ You do not have permission to transfer this character.", ephemeral=True)
+        
+    dest_key = f"{owner_id}_{interaction.guild_id}"
+    
+    # Check for collisions on destination
+    if dest_key in db["players"] and char_name in db["players"][dest_key].get("characters", {}):
+        return await interaction.response.send_message("❌ A character with this name already exists on this server for this user.", ephemeral=True)
+        
+    # Perform migration
+    char_data = db["players"][origin_key]["characters"].pop(char_name)
+    if char_name in db["players"][origin_key]["roster"]:
+        db["players"][origin_key]["roster"].remove(char_name)
+    
+    # Clean up origin if empty
+    if len(db["players"][origin_key]["characters"]) == 0:
+        del db["players"][origin_key]
+        
+    # Init destination
+    if dest_key not in db["players"]:
+        db["players"][dest_key] = {"roster": [], "characters": {}, "active": char_name}
+        
+    db["players"][dest_key]["characters"][char_name] = char_data
+    if char_name not in db["players"][dest_key]["roster"]:
+        db["players"][dest_key]["roster"].append(char_name)
+    
+    save_data("players", db["players"])
+    
+    origin_server_name = "Unknown Server"
+    if target_guild:
+        guild_obj = bot.get_guild(int(target_guild))
+        if guild_obj: origin_server_name = guild_obj.name
+        
+    await interaction.response.send_message(f"✅ Successfully transferred **{char_name}** from **{origin_server_name}** to this server!")
 
 # --- Stat Setup Modals & Commands ---
 class EditStatsModal(discord.ui.Modal, title="Edit Combat Stats"):
@@ -983,7 +1282,7 @@ class EditStatsModal(discord.ui.Modal, title="Edit Combat Stats"):
         stats["fight_effect"] = self.effect_input.value or "None"
         
         save_data("players", db["players"])
-        await interaction.response.send_message(f"âœ… Combat stats updated for **{self.char_name}**!", ephemeral=True)
+        await interaction.response.send_message(f"✅ Combat stats updated for **{self.char_name}**!", ephemeral=True)
 
 class EditAbilityModal(discord.ui.Modal, title="Edit Unique ABILITY"):
     name_input = discord.ui.TextInput(label="Ability Name", style=discord.TextStyle.short)
@@ -1003,7 +1302,7 @@ class EditAbilityModal(discord.ui.Modal, title="Edit Unique ABILITY"):
         ability["effect"] = self.effect_input.value
         
         save_data("players", db["players"])
-        await interaction.response.send_message(f"âœ… Ability updated for **{self.char_name}**!", ephemeral=True)
+        await interaction.response.send_message(f"✅ Ability updated for **{self.char_name}**!", ephemeral=True)
 
 
 
@@ -1039,7 +1338,7 @@ class EditEquipsModal(discord.ui.Modal, title="Edit Equipment & Badges"):
         equips["badge_3"] = self.b3_input.value or "Need Extra Pin"
         
         save_data("players", db["players"])
-        await interaction.response.send_message(f"âœ… Equipment updated for **{self.char_name}**!", ephemeral=True)
+        await interaction.response.send_message(f"✅ Equipment updated for **{self.char_name}**!", ephemeral=True)
 
 
 class EditChocsModal(discord.ui.Modal, title="Chocolate Ratings"):
@@ -1065,7 +1364,7 @@ class EditChocsModal(discord.ui.Modal, title="Chocolate Ratings"):
         try: stats["choc_dark"] = int(self.dark.value)
         except: pass
         save_data("players", db["players"])
-        await interaction.response.send_message(f"âœ… Chocolate ratings updated for **{self.char_name}**!", ephemeral=True)
+        await interaction.response.send_message(f"✅ Chocolate ratings updated for **{self.char_name}**!", ephemeral=True)
 
 class EditTrapStatsModal(discord.ui.Modal, title="Trap & Race Stats"):
     caut = discord.ui.TextInput(label="Cautiousness", style=discord.TextStyle.short, default="0")
@@ -1087,7 +1386,7 @@ class EditTrapStatsModal(discord.ui.Modal, title="Trap & Race Stats"):
         ostats["dexterity"] = self.dex.value or "0"
         ostats["timer"] = self.timer.value or "+0"
         save_data("players", db["players"])
-        await interaction.response.send_message(f"âœ… Trap & Race stats updated for **{self.char_name}**!", ephemeral=True)
+        await interaction.response.send_message(f"✅ Trap & Race stats updated for **{self.char_name}**!", ephemeral=True)
 
 class EditQuirksModal(discord.ui.Modal, title="Quirks & Whims"):
     t_name = discord.ui.TextInput(label="Trap Quirk Name", style=discord.TextStyle.short, default="None", required=False)
@@ -1112,7 +1411,7 @@ class EditQuirksModal(discord.ui.Modal, title="Quirks & Whims"):
         ostats["race_name"] = self.r_name.value or "None"
         ostats["race_effect"] = self.r_eff.value or "None"
         save_data("players", db["players"])
-        await interaction.response.send_message(f"âœ… Quirks & Whims updated for **{self.char_name}**!", ephemeral=True)
+        await interaction.response.send_message(f"✅ Quirks & Whims updated for **{self.char_name}**!", ephemeral=True)
 
 class EditMagicModal(discord.ui.Modal, title="Add / Edit Magic"):
     m_name = discord.ui.TextInput(label="Magic Name", style=discord.TextStyle.short)
@@ -1121,10 +1420,17 @@ class EditMagicModal(discord.ui.Modal, title="Add / Edit Magic"):
     m_cd = discord.ui.TextInput(label="Cooldown", style=discord.TextStyle.short, default="0")
     m_effect = discord.ui.TextInput(label="Effect", style=discord.TextStyle.paragraph, max_length=4000, default="None")
     
-    def __init__(self, char_name: str, owner_id: str):
+    def __init__(self, char_name: str, owner_id: str, magic_name: str = None, magic_data: dict = None):
         super().__init__()
         self.char_name = char_name
         self.owner_id = owner_id
+        
+        if magic_name and magic_data:
+            self.m_name.default = magic_name
+            self.m_ult.default = "Y" if magic_data.get("is_ultimate") else "N"
+            self.m_combat.default = f"{magic_data.get('hit', 'N/A')} / {magic_data.get('damage', 'N/A')}"
+            self.m_cd.default = str(magic_data.get('cooldown', "0"))
+            self.m_effect.default = magic_data.get("effect", "None")
         
     async def on_submit(self, interaction: discord.Interaction):
         m_name = self.m_name.value.strip()
@@ -1149,9 +1455,30 @@ class EditMagicModal(discord.ui.Modal, title="Add / Edit Magic"):
         save_data("players", db["players"])
         view = CharacterBuilderView(self.char_name, self.owner_id)
         try:
-            await interaction.response.edit_message(content=f"âœ… MAGIC **{m_name}** saved! Returning to Dashboard:", view=view, embed=None)
+            await interaction.response.edit_message(content=f"✅ MAGIC **{m_name}** saved! Returning to Dashboard:", view=view, embed=None)
         except:
-            await interaction.response.send_message(f"âœ… MAGIC **{m_name}** saved!", ephemeral=True)
+            await interaction.response.send_message(f"✅ MAGIC **{m_name}** saved!", ephemeral=True)
+
+
+class SelectMagicDropdown(discord.ui.Select):
+    def __init__(self, char_name: str, owner_id: str, magic_list: list):
+        self.char_name = char_name
+        self.owner_id = owner_id
+        self.magic_list = magic_list[:25]
+        options = [discord.SelectOption(label=m[:100], value=str(i)) for i, m in enumerate(self.magic_list)]
+        super().__init__(placeholder="Select a MAGIC to edit...", options=options)
+        
+    async def callback(self, interaction: discord.Interaction):
+        idx = int(self.values[0])
+        selected_magic = self.magic_list[idx]
+        magic_data = db["players"][self.owner_id]["characters"][self.char_name]["magic"][selected_magic]
+        # Open the pre-filled modal
+        await interaction.response.send_modal(EditMagicModal(self.char_name, self.owner_id, selected_magic, magic_data))
+
+class SelectMagicView(discord.ui.View):
+    def __init__(self, char_name: str, owner_id: str, magic_list: list):
+        super().__init__(timeout=None)
+        self.add_item(SelectMagicDropdown(char_name, owner_id, magic_list))
 
 class CharacterBuilderView(discord.ui.View):
     def __init__(self, char_name: str, owner_id: str):
@@ -1183,28 +1510,38 @@ class CharacterBuilderView(discord.ui.View):
     async def btn_quirks(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(EditQuirksModal(self.char_name, self.owner_id))
 
-    @discord.ui.button(label="Add/Edit Magic", style=discord.ButtonStyle.primary, row=1)
-    async def btn_magic(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label="Add MAGIC", style=discord.ButtonStyle.primary, row=1)
+    async def btn_add_magic(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(EditMagicModal(self.char_name, self.owner_id))
+        
+    @discord.ui.button(label="Edit MAGIC", style=discord.ButtonStyle.primary, row=1)
+    async def btn_edit_magic(self, interaction: discord.Interaction, button: discord.ui.Button):
+        char_data = db["players"][self.owner_id]["characters"][self.char_name]
+        magic_dict = char_data.get("magic", {})
+        if not magic_dict:
+            return await interaction.response.send_message("❌ This character has no MAGIC to edit yet.", ephemeral=True)
+            
+        view = SelectMagicView(self.char_name, self.owner_id, list(magic_dict.keys()))
+        await interaction.response.send_message("🪄 Select a spell to edit:", view=view, ephemeral=True)
 
 @bot.tree.command(name="editsheet", description="Open the Character Builder Dashboard")
 @app_commands.describe(target="Specific character (Defaults to Active)")
 @app_commands.autocomplete(target=target_auto)
 async def cmd_editsheet(interaction: discord.Interaction, target: str = None):
-    char_name = target if target else get_active_name(interaction)
+    char_name, interaction_target_guild = parse_target(target if target else get_active_name(interaction), str(interaction.guild_id))
     if target and not validate_target(interaction, char_name):
-        return await interaction.response.send_message("âŒ Target out of scope.", ephemeral=True)
+        return await interaction.response.send_message("❌ Target out of scope.", ephemeral=True)
     
     owner_id = None
     for p_uid, pdata in db["players"].items():
-        if p_uid.endswith(f"_{interaction.guild_id}") and "characters" in pdata and char_name in pdata["characters"]:
+        if p_uid.endswith(f"_{interaction_target_guild}") and "characters" in pdata and char_name in pdata["characters"]:
             owner_id = p_uid
             break
             
-    if not owner_id: return await interaction.response.send_message("âŒ Character not found.", ephemeral=True)
+    if not owner_id: return await interaction.response.send_message("❌ Character not found.", ephemeral=True)
     
     view = CharacterBuilderView(char_name, owner_id)
-    await interaction.response.send_message(f"âš™ï¸ Editing **{char_name}**:", view=view, ephemeral=True)
+    await interaction.response.send_message(f"⚙️ Editing **{char_name}**:", view=view, ephemeral=True)
 
 
 
@@ -1225,29 +1562,29 @@ async def cmd_editsheet(interaction: discord.Interaction, target: str = None):
     app_commands.Choice(name="Allergic (-2)", value="Allergic")
 ])
 async def cmd_giveitem(interaction: discord.Interaction, item_name: str, quantity: int = 1, preference: str = "Neutral", target: str = None, uses: int = None):
-    char_name = target if target else get_active_name(interaction)
+    char_name, interaction_target_guild = parse_target(target if target else get_active_name(interaction), str(interaction.guild_id))
     if not can_edit(interaction, char_name):
-        return await interaction.response.send_message("âŒ You do not have permission to edit this character.", ephemeral=True)
+        return await interaction.response.send_message("❌ You do not have permission to edit this character.", ephemeral=True)
     
     group, key, base_data = get_item_base_data(item_name)
     display_title = base_data.get("title", item_name.title()) if base_data else item_name.title()
     max_uses = parse_uses(base_data.get("uses", "1")) if base_data else 1
     
     if uses is not None and (uses <= 0 or (isinstance(max_uses, int) and uses > max_uses)):
-        return await interaction.response.send_message(f"âŒ Invalid uses provided. Must be between 1 and {max_uses}.", ephemeral=True)
+        return await interaction.response.send_message(f"❌ Invalid uses provided. Must be between 1 and {max_uses}.", ephemeral=True)
 
     success, msg = grant_item(char_name, display_title, quantity, max_uses, preference, starting_uses=uses, guild_id=str(interaction.guild_id))
     if success:
-        return await interaction.response.send_message(f"ðŸŽ’ Added **{quantity}x {display_title}** (Pref: {preference}) to **{char_name}**'s inventory!", ephemeral=True)
+        return await interaction.response.send_message(f"🎒 Added **{quantity}x {display_title}** (Pref: {preference}) to **{char_name}**'s inventory!", ephemeral=True)
     else:
-        return await interaction.response.send_message(f"âŒ {msg}", ephemeral=True)
+        return await interaction.response.send_message(f"❌ {msg}", ephemeral=True)
 
 @bot.tree.command(name="takeitem", description="Remove an item from a character's inventory")
 @app_commands.autocomplete(item_name=char_item_auto, target=target_auto)
 async def cmd_takeitem(interaction: discord.Interaction, item_name: str, target: str = None):
-    char_name = target if target else get_active_name(interaction)
+    char_name, interaction_target_guild = parse_target(target if target else get_active_name(interaction), str(interaction.guild_id))
     if not can_edit(interaction, char_name):
-        return await interaction.response.send_message("âŒ You do not have permission to edit this character.", ephemeral=True)
+        return await interaction.response.send_message("❌ You do not have permission to edit this character.", ephemeral=True)
         
     guild_id = str(interaction.guild_id)
     if char_name.startswith("Storage: "):
@@ -1257,7 +1594,7 @@ async def cmd_takeitem(interaction: discord.Interaction, item_name: str, target:
             instances = {i_uid: data for i_uid, data in inv.items() if data.get("name", i_uid).lower() == item_name.lower()}
             
             if not instances:
-                return await interaction.response.send_message(f"âš ï¸ **{char_name}** does not have **{item_name}**.", ephemeral=True)
+                return await interaction.response.send_message(f"⚠️ **{char_name}** does not have **{item_name}**.", ephemeral=True)
                 
             if len(instances) == 1:
                 target_uid = list(instances.keys())[0]
@@ -1267,7 +1604,7 @@ async def cmd_takeitem(interaction: discord.Interaction, item_name: str, target:
                 await interaction.response.send_message("You have multiple instances of this item.", view=view, ephemeral=True)
             return
         else:
-            return await interaction.response.send_message("âŒ Party storage not found.", ephemeral=True)
+            return await interaction.response.send_message("❌ Party storage not found.", ephemeral=True)
 
     for uid, pdata in db["players"].items():
         if "characters" in pdata and char_name in pdata["characters"]:
@@ -1275,7 +1612,7 @@ async def cmd_takeitem(interaction: discord.Interaction, item_name: str, target:
             instances = {i_uid: data for i_uid, data in inv.items() if data.get("name", i_uid).lower() == item_name.lower()}
             
             if not instances:
-                return await interaction.response.send_message(f"âš ï¸ **{char_name}** does not have **{item_name}**.", ephemeral=True)
+                return await interaction.response.send_message(f"⚠️ **{char_name}** does not have **{item_name}**.", ephemeral=True)
                 
             if len(instances) == 1:
                 target_uid = list(instances.keys())[0]
@@ -1294,18 +1631,18 @@ async def cmd_takeitem(interaction: discord.Interaction, item_name: str, target:
 async def cmd_useitem(interaction: discord.Interaction, item_name: str, target: str = None, use_times: int = 1):
     author_char = get_active_name(interaction)
     if not author_char:
-        return await interaction.response.send_message("âŒ You must have an active character to use an item.", ephemeral=True)
+        return await interaction.response.send_message("❌ You must have an active character to use an item.", ephemeral=True)
         
     if use_times <= 0:
-        return await interaction.response.send_message("âŒ `use_times` must be greater than 0.", ephemeral=True)
+        return await interaction.response.send_message("❌ `use_times` must be greater than 0.", ephemeral=True)
 
     target_char = target if target else author_char
     if target and not validate_target(interaction, target_char):
-        return await interaction.response.send_message("âŒ Target out of scope.", ephemeral=True)
+        return await interaction.response.send_message("❌ Target out of scope.", ephemeral=True)
 
     author_uid = f"{interaction.user.id}_{interaction.guild_id}"
     if author_uid not in db["players"] or "characters" not in db["players"][author_uid] or author_char not in db["players"][author_uid]["characters"]:
-        return await interaction.response.send_message("âŒ Your active character is not valid.", ephemeral=True)
+        return await interaction.response.send_message("❌ Your active character is not valid.", ephemeral=True)
 
     inv = db["players"][author_uid]["characters"][author_char].get("inventory", {})
     
@@ -1318,7 +1655,7 @@ async def cmd_useitem(interaction: discord.Interaction, item_name: str, target: 
                 instances[i_uid] = data
 
     if not instances:
-        return await interaction.response.send_message(f"âš ï¸ **{author_char}** does not have **{item_name}** with at least {use_times} uses left.", ephemeral=True)
+        return await interaction.response.send_message(f"⚠️ **{author_char}** does not have **{item_name}** with at least {use_times} uses left.", ephemeral=True)
 
     if len(instances) == 1:
         target_uid = list(instances.keys())[0]
@@ -1415,7 +1752,7 @@ async def help_command_auto(interaction: discord.Interaction, current: str):
         "creategroup", "editgroup", "removegroup", "additem", "additemvariant", "edititem", 
         "edititemvariant", "removeitem", "addstatus", "addstatusvariant", "editstatus", 
         "editstatusvariant", "removestatus", "backup", "dmtargetscope", "help", "characterlist player", 
-        "characterlist party", "joinparty", "leaveparty", "clearinventory"
+        "characterlist party", "joinparty", "leaveparty", "clearinventory", "metronome", "addbadge", "editbadge", "removebadge"
     ]
     import discord.app_commands as app_commands
     return [app_commands.Choice(name=f"/{c}", value=c) for c in commands if current.lower() in c.lower()][:25]
@@ -1428,14 +1765,14 @@ async def cmd_help(interaction: discord.Interaction, command_name: str = None):
         desc = (
             "**Welcome to the Amaranth Archive!**\n"
             "Below is a complete list of all commands available to you. For deeper mechanics on any specific command, run `/help` and type its name into the optional box!\n\n"
-            "ðŸ‘¤ **Character & Stat Management**\n"
+            "👤 **Character & Stat Management**\n"
             "`/addchar`, `/setchar`, `/removechar`, `/movesheet`, `/editsheet`, `/removemagic`, `/editpreference`, `/joinparty`, `/leaveparty`\n\n"
-            "ðŸŽ’ **Inventory, Economy & Upgrades**\n"
+            "🎒 **Inventory, Economy & Upgrades**\n"
             "`/giveitem`, `/takeitem`, `/useitem`, `/storage`, `/shop`\n\n"
-            "ðŸ“– **Lookup & Game Information**\n"
-            "`/item`, `/status`, `/badge`, `/randomitem`, `/randomstatus`, `/help`, `/characterlist player`, `/characterlist party` \n\n"
-            "ðŸ‘‘ **DM & Game Data Management**\n"
-            "`/dmtargetscope`, `/creategroup`, `/editgroup`, `/removegroup`, `/additem`, `/additemvariant`, `/edititem`, `/edititemvariant`, `/removeitem`, `/addstatus`, `/addstatusvariant`, `/editstatus`, `/editstatusvariant`, `/removestatus`, `/backup`, `/party`, `/upgrade`, `/clearinventory`"
+            "📖 **Lookup & Game Information**\n"
+            "`/item`, `/status`, `/badge`, `/randomitem`, `/randomstatus`, `/help`, `/characterlist player`, `/characterlist party`, `/metronome` \n\n"
+            "👑 **DM & Game Data Management**\n"
+            "`/dmtargetscope`, `/creategroup`, `/editgroup`, `/removegroup`, `/additem`, `/additemvariant`, `/edititem`, `/edititemvariant`, `/removeitem`, `/addstatus`, `/addstatusvariant`, `/editstatus`, `/editstatusvariant`, `/removestatus`, `/addbadge`, `editbadge`, `removebadge`, `/backup`, `/party`, `/upgrade`, `/clearinventory`"
         )
         embed = discord.Embed(title="Amaranth Archive Command List", description=desc, color=discord.Color.blue())
         return await interaction.response.send_message(embed=embed)
@@ -1454,7 +1791,7 @@ async def cmd_help(interaction: discord.Interaction, command_name: str = None):
         "shop": "Views the shops for each ITEM group and badges, and lets you buy from them! Admins can also lock certain items for progression or being 'out of stock'.",
         "upgrade": "Manages permanent character upgrades! This means it changes the amount of Crystal Hearts you have and if you have a Dimensional Satchel or not. Only the Admins can access this command.",
         "help": "Surprisingly, you're already there! To view the command list, type `/help` without filling out the optional field! If you just want to say hi, then there is a button for you to do so!",
-        "badge": "Look up a specific Badge! Badges are equips like Weapons and Armor, but unlike those two, it is generic and can be equipped by any character. Please note that all Badges on a character must be unique; you cannot have 2 or more of the same Badge on them. Also, each character can only have up to one Combo Badge OR Emblem; not both at the same time, and not more than one of each. The Badge groups are below.\n\nNormal Badges: Badges that can be equipped immediately when bought. There are 43 Normal Badges, which consist of:\nAgility, Aggressive Armament, Awareness, Axe-Load, Cleaning, Deep Concentration, Deep Focus, Dexterity, Fortunate, Fruity, Fury, Grindgame, Hail, Hard Hitter, Headstart, Heart Finder I, Heart Finder II, Heart Finder III, Heart Finder IV, Heavy, Helmet, Intelligence, Invigorated, Lifesaver, Lucky, Medical, Nightlight, Pay-Off, Quick Defend, Quick Eater, Quick Reflexes, Rounder, Serenity, Speed, Spoon, Strength, Survivalist, Teamwork, Thorny, Tower, Vengeance, Vigilante, Vixen, Weak Point, and Wish.\n\nCombo Badges: Badges that consist of 3 different badges to combine into. There are 5 Normal Badges, which consist of:\nFirst-Aid: Medical Badge, Spoon Badge, and Quick Eater Badge.\nHigh Roller: Hail Badge, Headstart Badge, Vixen Badge.\nMultiplier: Heavy Badge, Lucky Badge, Weak Point Badge.\nRejuvenation: Awareness Badge, Invigorated Badge, Lifesaver Badge.\nRPG: Dexterity Badge, Intelligence Badge, Strength Badge\n\nEmblems: Special Badges that cannot be bought and can only be obtained as a reward for completing a battle or Bounty. There are 14 Emblems, which consist of:\nAnxiety, Comboing, Divinity, Endless Rage, Foliage, Fame, Fortune, Frights, Gold, Ribbits, Technology, the SOUL, Tranquility, and Warriors.",
+        "badge": "Look up a specific Badge! Badges are equips like Weapons and Armor, but unlike those two, it is generic and can be equipped by any character. Please note that all Badges on a character must be unique; you cannot have 2 or more of the same Badge on them. Also, each character can only have up to one Combo Badge OR Emblem; not both at the same time, and not more than one of each. The Badge groups are below.\n\nNormal Badges: Badges that can be equipped immediately when bought. There are 43 Normal Badges, which consist of:\n- Agility, Aggressive Armament, Awareness, Axe-Load, Cleaning, Deep Concentration, Deep Focus, Dexterity, Fortunate, Fruity, Fury, Grindgame, Hail, Hard Hitter, Headstart, Heart Finder I, Heart Finder II, Heart Finder III, Heart Finder IV, Heavy, Helmet, Intelligence, Invigorated, Lifesaver, Lucky, Medical, Nightlight, Pay-Off, Quick Defend, Quick Eater, Quick Reflexes, Rounder, Serenity, Speed, Spoon, Strength, Survivalist, Teamwork, Thorny, Tower, Vengeance, Vigilante, Vixen, Weak Point, and Wish.\n\nCombo Badges: Badges that consist of 3 different badges to combine into. There are 5 Combo Badges, which consist of:\n- First-Aid: Medical Badge, Spoon Badge, and Quick Eater Badge.\n- High Roller: Hail Badge, Headstart Badge, Vixen Badge.\n- Multiplier: Heavy Badge, Lucky Badge, Weak Point Badge.\n- Rejuvenation: Awareness Badge, Invigorated Badge, Lifesaver Badge.\n- RPG: Dexterity Badge, Intelligence Badge, Strength Badge\n\nEmblems: Special Badges that cannot be bought and can only be obtained as a reward for completing a battle or Bounty. There are 14 Emblems, which consist of:\n- Anxiety, Comboing, Divinity, Endless Rage, Foliage, Fame, Fortune, Frights, Gold, Ribbits, Technology, the SOUL, Tranquility, and Warriors.",
         "randomitem": "Roll for a random ITEM! There is a field to pick a specific group of ITEMs to roll from; all ITEMs in that group have an equal chance. The ITEM groups you can roll from contains:\nAny Non-Special, Food, Drink, Battle, Revive, or Special.",
         "randomstatus": "Roll for a random STATUS! There is a field to pick a specific group of STATUSes to roll from; all STATUSes in that group have an equal chance. If you choose Any Random, you roll for a random group and must use the command again with that group. The STATUS groups you can roll from contains:\nGood, Neutral, and Bad.",
         "creategroup":"Creates a new STATUS or ITEM group to sort STATUSes and ITEMs in!",
@@ -1479,7 +1816,11 @@ async def cmd_help(interaction: discord.Interaction, command_name: str = None):
         "characterlist party": "Lets you see a list of characters in a party!",
         "joinparty": "Lets a character join a party made in the server! This lets you use commands that relate to other people in the same party (like use ITEMs on another person's character, for instance).",
         "leaveparty": "Lets you remove your character from a party it is in! The party will be sad to see you go...",
-        "clearinventory": "Allows an Admin to clear the entire inventory of one character, a party's storage, or everyone in a party!"
+        "clearinventory": "Allows an Admin to clear the entire inventory of one character, a party's storage, or everyone in a party!",
+        "metronome":"Lets you roll or view the spells castable via Metronome; Metronome can be casted by the Handy Glove. The spells castable by Metronome are as follows: Mega Punch, Razor Wind, Swords Dance, Whirlwind, Mega Kick, Toxic, Horn Drill, Body Slam, Take Down, Double Edge, Bubble Beam, Water Gun, Ice Beam, Blizzard, Hyper Beam, Pay Day, Submission, Counter, Seismic Toss, Rage, Mega Drain, Solar Beam, Dragon Rage, Thunderbolt, Thunder, Earthquake, Fissure, Dig, Psychic, Teleport, Mimic, Double Team, Reflect, Bide, Metronome, Self-Destruct, Egg Bomb, Fire Blast, Swift, Skull Bash, Soft-Boiled, Dream Eater, Sky Attack, Rest, Thunder Wave, Psywave, Explosion, Rock Slide, Tri-Attack, and Substitute.",
+        "addbadge": "Adds a new Normal Badge, Combo Badge, or Emblem!",
+        "editbadge": "Edits an existing Normal Badge, Combo Badge, or Emblem!",
+        "removebadge": "Removes an existing Normal Badge, Combo Badge, or Emblem!",
     }
 
     # Groups logic decoupled for independent help texts
@@ -1532,7 +1873,7 @@ class RandomStatusView(discord.ui.View):
         self.statustype = statustype
         self.target = target
         
-    @discord.ui.button(label="Reroll ðŸŽ²", style=discord.ButtonStyle.primary, custom_id="btn_status_reroll")
+    @discord.ui.button(label="Reroll 🎲", style=discord.ButtonStyle.primary, custom_id="btn_status_reroll")
     async def btn_reroll(self, interaction: discord.Interaction, button: discord.ui.Button):
         import random
         pool, weights = [], []
@@ -1562,7 +1903,8 @@ class RandomStatusView(discord.ui.View):
         elif "bad" in random_group.lower(): embed_color = discord.Color.red()
             
         embed = discord.Embed(description=desc, color=embed_color)
-        await interaction.response.edit_message(embed=embed, view=self)
+        await interaction.response.edit_message(view=None)
+        await interaction.followup.send(embed=embed, view=self)
 
 @bot.tree.command(name="randomstatus", description="Roll a random status effect")
 @app_commands.autocomplete(statustype=statustype_auto, target=target_auto)
@@ -1601,7 +1943,7 @@ async def cmd_randomstatus(interaction: discord.Interaction, statustype: str, ta
     if not pool: return await interaction.response.send_message("No statuses found in that group.", ephemeral=True)
         
     random_group, random_id, data = random.choices(pool, weights=weights, k=1)[0]
-    char_name = target if target else get_active_name(interaction)
+    char_name, interaction_target_guild = parse_target(target if target else get_active_name(interaction), str(interaction.guild_id))
     
     display_title = data.get("title", random_id.title())
     flavor = data.get("text", "").replace("_", char_name)
@@ -1627,7 +1969,7 @@ class RandomItemView(discord.ui.View):
         self.itemgroup = itemgroup
         self.target = target
         
-    @discord.ui.button(label="Reroll ðŸŽ²", style=discord.ButtonStyle.primary, custom_id="btn_item_reroll")
+    @discord.ui.button(label="Reroll 🎲", style=discord.ButtonStyle.primary, custom_id="btn_item_reroll")
     async def btn_reroll(self, interaction: discord.Interaction, button: discord.ui.Button):
         import random
         pool, weights = [], []
@@ -1658,7 +2000,8 @@ class RandomItemView(discord.ui.View):
         if flavor: desc += f"\n\n*Description: {flavor}*"
         
         embed = discord.Embed(description=desc, color=discord.Color.gold())
-        await interaction.response.edit_message(embed=embed, view=self)
+        await interaction.response.edit_message(view=None)
+        await interaction.followup.send(embed=embed, view=self)
 
 @bot.tree.command(name="randomitem", description="Roll a random item")
 @app_commands.autocomplete(itemgroup=itemtype_auto, target=target_auto)
@@ -1695,7 +2038,7 @@ async def cmd_randomitem(interaction: discord.Interaction, itemgroup: str, targe
     if not pool: return await interaction.response.send_message("No items found in that group.", ephemeral=True)
         
     random_group, random_id, data = random.choices(pool, weights=weights, k=1)[0]
-    char_name = target if target else get_active_name(interaction)
+    char_name, interaction_target_guild = parse_target(target if target else get_active_name(interaction), str(interaction.guild_id))
     
     display_title = data.get("title", random_id.title())
     uses = data.get("uses", "1")
@@ -1711,8 +2054,25 @@ async def cmd_randomitem(interaction: discord.Interaction, itemgroup: str, targe
     view = RandomItemView(itemgroup, target)
     await interaction.response.send_message(embed=embed, view=view)
 
+class BadgeView(discord.ui.View):
+    def __init__(self, title: str, effect: str):
+        super().__init__(timeout=None)
+        # Format requested by client
+        self.copy_text = f"{title} ({effect})"
+        
+    @discord.ui.button(label="Copy Format", style=discord.ButtonStyle.primary, custom_id="btn_badge_copy")
+    async def btn_copy(self, interaction: discord.Interaction, button: discord.ui.Button):
+        msg = (
+            "**💻 Desktop Users (Use the copy button on the box below):**\n"
+            f"```\n{self.copy_text}\n```\n"
+            "**📱 Mobile Users (Tap and hold the text below):**\n"
+            f"`{self.copy_text}`"
+        )
+        await interaction.response.send_message(msg, ephemeral=True)
+
 @bot.tree.command(name="badge", description="Look up a specific badge (Full Mechanics)")
 @app_commands.autocomplete(group=badge_group_auto, name=badge_name_auto)
+
 async def cmd_badge(interaction: discord.Interaction, group: str, name: str):
     try:
         data = db["badges"][group][name]
@@ -1722,8 +2082,9 @@ async def cmd_badge(interaction: discord.Interaction, group: str, name: str):
         
         body = f"**Category:** {group}\n\n**Effect:**\n{effect}"
             
-        embed = discord.Embed(title=f"ðŸ›¡ï¸ {display_title}", description=body, color=discord.Color.dark_theme())
-        await interaction.response.send_message(embed=embed)
+        embed = discord.Embed(title=f"🛡️ {display_title}", description=body, color=discord.Color.dark_theme())
+        view = BadgeView(display_title, effect)
+        await interaction.response.send_message(embed=embed, view=view)
     except KeyError:
         await interaction.response.send_message("Badge not found.", ephemeral=True)
 
@@ -1738,13 +2099,14 @@ async def cmd_badge(interaction: discord.Interaction, group: str, name: str):
 )
 @app_commands.choices(category=[
     app_commands.Choice(name="Status Group", value="statuses"),
-    app_commands.Choice(name="Item Group", value="items")
+    app_commands.Choice(name="Item Group", value="items"),
+    app_commands.Choice(name="Badge Group", value="badges")
 ])
 async def cmd_creategroup(interaction: discord.Interaction, category: str, name: str, description: str):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     
     if name in db["groups"][category]:
-        return await interaction.response.send_message(f"âš ï¸ Group **{name}** already exists!", ephemeral=True)
+        return await interaction.response.send_message(f"⚠️ Group **{name}** already exists!", ephemeral=True)
         
     db["groups"][category][name] = description
     if name not in db[category]:
@@ -1752,32 +2114,36 @@ async def cmd_creategroup(interaction: discord.Interaction, category: str, name:
         
     save_data("groups", db["groups"])
     save_data(category, db[category])
-    await interaction.response.send_message(f"âœ… Created new {category[:-2]} group: **{name}**!", ephemeral=True)
+    
+    clean_name = "status" if category == "statuses" else category[:-1]
+    await interaction.response.send_message(f"✅ Created new {clean_name} group: **{name}**!", ephemeral=True)
 
 @bot.tree.command(name="editgroup", description="DM Only: Edit an existing group's description")
 @app_commands.describe(name="Name of the group EXACTLY as it appears", description="New description")
 @app_commands.choices(category=[
     app_commands.Choice(name="Status Group", value="statuses"),
-    app_commands.Choice(name="Item Group", value="items")
+    app_commands.Choice(name="Item Group", value="items"),
+    app_commands.Choice(name="Badge Group", value="badges")
 ])
 async def cmd_editgroup(interaction: discord.Interaction, category: str, name: str, description: str):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     
     if name not in db["groups"][category]:
-        return await interaction.response.send_message(f"âš ï¸ Group **{name}** does not exist. Remember, names are case-sensitive!", ephemeral=True)
+        return await interaction.response.send_message(f"⚠️ Group **{name}** does not exist. Remember, names are case-sensitive!", ephemeral=True)
         
     db["groups"][category][name] = description
     save_data("groups", db["groups"])
-    await interaction.response.send_message(f"âœ… Updated **{name}** description!", ephemeral=True)
+    await interaction.response.send_message(f"✅ Updated **{name}** description!", ephemeral=True)
 
 @bot.tree.command(name="removegroup", description="DM Only: Remove a group ENTIRELY (Deletes all entries inside it!)")
 @app_commands.describe(name="Name of the group EXACTLY as it appears")
 @app_commands.choices(category=[
     app_commands.Choice(name="Status Group", value="statuses"),
-    app_commands.Choice(name="Item Group", value="items")
+    app_commands.Choice(name="Item Group", value="items"),
+    app_commands.Choice(name="Badge Group", value="badges")
 ])
 async def cmd_removegroup(interaction: discord.Interaction, category: str, name: str):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     
     if name in db["groups"][category]:
         del db["groups"][category][name]
@@ -1787,11 +2153,13 @@ async def cmd_removegroup(interaction: discord.Interaction, category: str, name:
         del db[category][name]
         save_data(category, db[category])
         
-    await interaction.response.send_message(f"ðŸ—‘ï¸ Group **{name}** and all its contents have been removed.", ephemeral=True)
+    await interaction.response.send_message(f"🗑️ Group **{name}** and all its contents have been removed.", ephemeral=True)
 
 class AddEntryModal(discord.ui.Modal):
     def __init__(self, category: str, group: str, entry_id: str, display_title: str, uses: str = None):
-        clean = "Status" if category == "statuses" else "Item"
+        if category == "statuses": clean = "Status"
+        elif category == "badges": clean = "Badge"
+        else: clean = "Item"
         super().__init__(title=f"Add {clean}")
         self.category = category
         self.group = group
@@ -1806,7 +2174,7 @@ class AddEntryModal(discord.ui.Modal):
             required=True
         )
         
-        flavor_label = "Description (Use _ for char)" if category == "items" else "Text (Use _ for char)"
+        flavor_label = "Description (Use _ for char)" if category in ["items", "badges"] else "Text (Use _ for char)"
         self.flavor_text = discord.ui.TextInput(
             label=flavor_label,
             style=discord.TextStyle.paragraph, max_length=4000,
@@ -1833,7 +2201,7 @@ class AddEntryModal(discord.ui.Modal):
 
     async def on_submit(self, interaction: discord.Interaction):
         if self.group not in db["groups"][self.category]:
-            return await interaction.response.send_message(f"âŒ Group `{self.group}` does not exist. Please use `/creategroup` first!", ephemeral=True)
+            return await interaction.response.send_message(f"❌ Group `{self.group}` does not exist. Please use `/creategroup` first!", ephemeral=True)
             
         if self.group not in db[self.category]: db[self.category][self.group] = {}
             
@@ -1841,7 +2209,7 @@ class AddEntryModal(discord.ui.Modal):
         try: weight_val = float(self.drop_weight.value) if self.drop_weight.value else 1.0
         except ValueError: weight_val = 1.0 
 
-        flavor_key = "description" if self.category == "items" else "text"
+        flavor_key = "description" if self.category in ["items", "badges"] else "text"
 
         db[self.category][self.group][self.entry_id] = {
             "title": self.display_title,
@@ -1855,11 +2223,14 @@ class AddEntryModal(discord.ui.Modal):
             db[self.category][self.group][self.entry_id]["uses"] = self.uses
             
         save_data(self.category, db[self.category])
-        await interaction.response.send_message(f"âœ… Added **{self.display_title}** to `{self.group}`!", ephemeral=True)
+        await interaction.response.send_message(f"✅ Added **{self.display_title}** to `{self.group}`!", ephemeral=True)
 
 class EditEntryModal(discord.ui.Modal):
     def __init__(self, category: str, group: str, entry_id: str, data: dict):
-        clean = "Status" if category == "statuses" else "Item"
+        if category == "statuses": clean = "Status"
+        elif category == "badges": clean = "Badge"
+        else: clean = "Item"
+        
         super().__init__(title=f"Edit {clean}: {entry_id[:15]}")
         self.category = category
         self.group = group
@@ -1879,8 +2250,8 @@ class EditEntryModal(discord.ui.Modal):
             required=True
         )
         
-        flavor_key = "description" if category == "items" else "text"
-        flavor_label = "Description (Use _ for char)" if category == "items" else "Text (Use _ for char)"
+        flavor_key = "description" if category in ["items", "badges"] else "text"
+        flavor_label = "Description (Use _ for char)" if category in ["items", "badges"] else "Text (Use _ for char)"
         self.flavor_text = discord.ui.TextInput(
             label=flavor_label,
             style=discord.TextStyle.paragraph, max_length=4000,
@@ -1911,7 +2282,7 @@ class EditEntryModal(discord.ui.Modal):
         try: weight_val = float(self.drop_weight.value) if self.drop_weight.value else 1.0
         except ValueError: weight_val = 1.0
 
-        flavor_key = "description" if self.category == "items" else "text"
+        flavor_key = "description" if self.category in ["items", "badges"] else "text"
         variants = self.data.get("variants", {})
         uses = self.data.get("uses", "1")
 
@@ -1930,7 +2301,7 @@ class EditEntryModal(discord.ui.Modal):
             db[self.category][self.group][self.entry_id]["variants"] = variants
 
         save_data(self.category, db[self.category])
-        await interaction.response.send_message(f"âœ… Successfully updated **{self.display_title.value}**!", ephemeral=True)
+        await interaction.response.send_message(f"✅ Successfully updated **{self.display_title.value}**!", ephemeral=True)
 
 
 class AddVariantModal(discord.ui.Modal):
@@ -1964,7 +2335,7 @@ class AddVariantModal(discord.ui.Modal):
 
     async def on_submit(self, interaction: discord.Interaction):
         if self.group not in db[self.category] or self.entry_id not in db[self.category][self.group]:
-            return await interaction.response.send_message("âŒ Base entry not found.", ephemeral=True)
+            return await interaction.response.send_message("❌ Base entry not found.", ephemeral=True)
             
         entry = db[self.category][self.group][self.entry_id]
         
@@ -1986,39 +2357,39 @@ class AddVariantModal(discord.ui.Modal):
         
         save_data(self.category, db[self.category])
         action = "Updated" if self.variant_data else "Added"
-        await interaction.response.send_message(f"âœ… {action} variant **{self.variant_name}** for `{self.entry_id}`!", ephemeral=True)
+        await interaction.response.send_message(f"✅ {action} variant **{self.variant_name}** for `{self.entry_id}`!", ephemeral=True)
 
 @bot.tree.command(name="addstatus", description="DM Only: Add a status")
 @app_commands.autocomplete(group=status_group_auto)
 async def cmd_addstatus(interaction: discord.Interaction, group: str, id_name: str, display_title: str):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     await interaction.response.send_modal(AddEntryModal("statuses", group, id_name.lower(), display_title))
 
 @bot.tree.command(name="additem", description="DM Only: Add an item")
 @app_commands.autocomplete(group=item_group_auto)
 @app_commands.describe(uses="Number of uses (e.g. 1, 3, Infinite)")
 async def cmd_additem(interaction: discord.Interaction, group: str, id_name: str, display_title: str, uses: str = "1"):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     await interaction.response.send_modal(AddEntryModal("items", group, id_name.lower(), display_title, uses=uses))
 
 @bot.tree.command(name="additemvariant", description="DM Only: Add a variant to an existing item")
 @app_commands.autocomplete(group=item_group_auto, entry_id=item_name_auto)
 @app_commands.describe(variant_name="e.g. Well-Liked", uses="Optional: Uses for this variant")
 async def cmd_additemvariant(interaction: discord.Interaction, group: str, entry_id: str, variant_name: str, uses: str = None):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     await interaction.response.send_modal(AddVariantModal("items", group, entry_id.lower(), variant_name, uses=uses))
 
 @bot.tree.command(name="addstatusvariant", description="DM Only: Add a variant to an existing status")
 @app_commands.autocomplete(group=status_group_auto, entry_id=status_name_auto)
 async def cmd_addstatusvariant(interaction: discord.Interaction, group: str, entry_id: str, variant_name: str):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     await interaction.response.send_modal(AddVariantModal("statuses", group, entry_id.lower(), variant_name))
 
 @bot.tree.command(name="edititem", description="DM Only: Edit an existing item")
 @app_commands.autocomplete(group=item_group_auto, name=item_name_auto)
 @app_commands.describe(new_uses="Optional: Change the amount of uses for this item")
 async def cmd_edititem(interaction: discord.Interaction, group: str, name: str, new_uses: str = None):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     
     name_key = name.lower()
     if group in db["items"] and name_key in db["items"][group]:
@@ -2030,25 +2401,55 @@ async def cmd_edititem(interaction: discord.Interaction, group: str, name: str, 
             
         await interaction.response.send_modal(EditEntryModal("items", group, name_key, data))
     else:
-        await interaction.response.send_message(f"âš ï¸ Could not find **{name_key}** in `{group}`.", ephemeral=True)
+        await interaction.response.send_message(f"⚠️ Could not find **{name_key}** in `{group}`.", ephemeral=True)
+
+
+
+@bot.tree.command(name="addbadge", description="DM Only: Create a new badge")
+@app_commands.autocomplete(group=badge_group_auto)
+async def cmd_addbadge(interaction: discord.Interaction, group: str, id_name: str, display_title: str):
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
+    await interaction.response.send_modal(AddEntryModal("badges", group, id_name.lower(), display_title))
+
+@bot.tree.command(name="removebadge", description="DM Only: Remove an existing badge")
+@app_commands.autocomplete(group=badge_group_auto, name=badge_name_auto)
+async def cmd_removebadge(interaction: discord.Interaction, group: str, name: str):
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
+    n = name.lower()
+    if group in db["badges"] and n in db["badges"][group]:
+        del db["badges"][group][n]
+        save_data("badges", db["badges"])
+        await interaction.response.send_message(f"🗑️ Removed **{n}**.", ephemeral=True)
+
+@bot.tree.command(name="editbadge", description="DM Only: Edit an existing badge")
+@app_commands.autocomplete(group=badge_group_auto, name=badge_name_auto)
+async def cmd_editbadge(interaction: discord.Interaction, group: str, name: str):
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
+    
+    name_key = name.lower()
+    if group in db["badges"] and name_key in db["badges"][group]:
+        data = db["badges"][group][name_key]
+        await interaction.response.send_modal(EditEntryModal("badges", group, name_key, data))
+    else:
+        await interaction.response.send_message(f"⚠️ Could not find **{name_key}** in `{group}`.", ephemeral=True)
 
 @bot.tree.command(name="editstatus", description="DM Only: Edit an existing status")
 @app_commands.autocomplete(group=status_group_auto, name=status_name_auto)
 async def cmd_editstatus(interaction: discord.Interaction, group: str, name: str):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     
     name_key = name.lower()
     if group in db["statuses"] and name_key in db["statuses"][group]:
         data = db["statuses"][group][name_key]
         await interaction.response.send_modal(EditEntryModal("statuses", group, name_key, data))
     else:
-        await interaction.response.send_message(f"âš ï¸ Could not find **{name_key}** in `{group}`.", ephemeral=True)
+        await interaction.response.send_message(f"⚠️ Could not find **{name_key}** in `{group}`.", ephemeral=True)
 
 @bot.tree.command(name="edititemvariant", description="DM Only: Edit an existing item variant")
 @app_commands.autocomplete(group=item_group_auto, name=item_name_auto, variant_name=item_variant_auto)
 @app_commands.describe(new_uses="Optional: Change the amount of uses for this variant")
 async def cmd_edititemvariant(interaction: discord.Interaction, group: str, name: str, variant_name: str, new_uses: str = None):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     
     name_key = name.lower()
     if group in db["items"] and name_key in db["items"][group]:
@@ -2059,14 +2460,14 @@ async def cmd_edititemvariant(interaction: discord.Interaction, group: str, name
                 save_data("items", db["items"])
             await interaction.response.send_modal(AddVariantModal("items", group, name_key, variant_name, variants[variant_name]))
         else:
-            await interaction.response.send_message(f"âš ï¸ Could not find variant **{variant_name}**.", ephemeral=True)
+            await interaction.response.send_message(f"⚠️ Could not find variant **{variant_name}**.", ephemeral=True)
     else:
-        await interaction.response.send_message(f"âš ï¸ Could not find **{name_key}**.", ephemeral=True)
+        await interaction.response.send_message(f"⚠️ Could not find **{name_key}**.", ephemeral=True)
 
 @bot.tree.command(name="editstatusvariant", description="DM Only: Edit an existing status variant")
 @app_commands.autocomplete(group=status_group_auto, name=status_name_auto, variant_name=status_variant_auto)
 async def cmd_editstatusvariant(interaction: discord.Interaction, group: str, name: str, variant_name: str):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     
     name_key = name.lower()
     if group in db["statuses"] and name_key in db["statuses"][group]:
@@ -2074,36 +2475,36 @@ async def cmd_editstatusvariant(interaction: discord.Interaction, group: str, na
         if variant_name in variants:
             await interaction.response.send_modal(AddVariantModal("statuses", group, name_key, variant_name, variants[variant_name]))
         else:
-            await interaction.response.send_message(f"âš ï¸ Could not find variant **{variant_name}**.", ephemeral=True)
+            await interaction.response.send_message(f"⚠️ Could not find variant **{variant_name}**.", ephemeral=True)
     else:
-        await interaction.response.send_message(f"âš ï¸ Could not find **{name_key}**.", ephemeral=True)
+        await interaction.response.send_message(f"⚠️ Could not find **{name_key}**.", ephemeral=True)
 
 @bot.tree.command(name="removestatus", description="DM Only: Delete a status")
 @app_commands.autocomplete(group=status_group_auto, name=status_name_auto)
 async def cmd_removestatus(interaction: discord.Interaction, group: str, name: str):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     n = name.lower()
     if group in db["statuses"] and n in db["statuses"][group]:
         del db["statuses"][group][n]
         save_data("statuses", db["statuses"])
-        await interaction.response.send_message(f"ðŸ—‘ï¸ Removed **{n}**.", ephemeral=True)
+        await interaction.response.send_message(f"🗑️ Removed **{n}**.", ephemeral=True)
 
 @bot.tree.command(name="removeitem", description="DM Only: Delete an item")
 @app_commands.autocomplete(group=item_group_auto, name=item_name_auto)
 async def cmd_removeitem(interaction: discord.Interaction, group: str, name: str):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
     n = name.lower()
     if group in db["items"] and n in db["items"][group]:
         del db["items"][group][n]
         save_data("items", db["items"])
-        await interaction.response.send_message(f"ðŸ—‘ï¸ Removed **{n}**.", ephemeral=True)
+        await interaction.response.send_message(f"🗑️ Removed **{n}**.", ephemeral=True)
 
 @bot.tree.command(name="backup", description="DM Only: Download databases")
 async def cmd_backup(interaction: discord.Interaction):
-    if interaction.user.id not in ADMIN_USER_IDS: return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
-    files = [discord.File(f"data/{f}.json") for f in ["items", "statuses", "players", "groups"] if os.path.exists(f"data/{f}.json")]
-    if not files: return await interaction.response.send_message("âš ï¸ No files.", ephemeral=True)
-    await interaction.response.send_message("ðŸ“¦ Database backup:", files=files, ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS: return await interaction.response.send_message("❌ Denied.", ephemeral=True)
+    files = [discord.File(f"data/{f}.json") for f in db.keys() if os.path.exists(f"data/{f}.json")]
+    if not files: return await interaction.response.send_message("⚠️ No files.", ephemeral=True)
+    await interaction.response.send_message("📦 Database backup:", files=files, ephemeral=True)
 
 
 
@@ -2161,6 +2562,33 @@ async def shop_target_auto(interaction: discord.Interaction, current: str):
         targets.extend(db["wallet"][guild_id]["parties"][party].get("members", []))
     return [app_commands.Choice(name=t, value=t) for t in targets if current.lower() in t.lower()][:25]
 
+async def storage_name_auto(interaction: discord.Interaction, current: str):
+    guild_id = str(interaction.guild_id)
+    party_name = interaction.namespace.party_name
+    target_party = party_name if party_name else get_active_party(guild_id)
+    
+    if not target_party or guild_id not in db.get("wallet", {}):
+        return [app_commands.Choice(name="Main", value="Main")] if "main".startswith(current.lower()) else []
+        
+    parties = db["wallet"][guild_id].get("parties", {})
+    if target_party not in parties:
+        return [app_commands.Choice(name="Main", value="Main")] if "main".startswith(current.lower()) else []
+        
+    wallet = parties[target_party]
+    storages = wallet.get("storages", {})
+    
+    names = list(storages.keys())
+    if "Main" not in names:
+        names.insert(0, "Main")
+        
+    choices = []
+    for n in names:
+        if current.lower() in n.lower():
+            choices.append(app_commands.Choice(name=n, value=n))
+            if len(choices) >= 25:
+                break
+    return choices
+
 # --- PARTY COMMANDS ---
 
 async def party_autocomplete(interaction: discord.Interaction, current: str):
@@ -2171,117 +2599,147 @@ async def party_autocomplete(interaction: discord.Interaction, current: str):
     return [app_commands.Choice(name=p, value=p) for p in parties if current.lower() in p.lower()][:25]
 
 @bot.tree.command(name="party", description="Manage the party, members, and currency")
-@app_commands.describe(action="create/setactive/balance/add_funds/remove_funds/set_currency/add_member/remove_member/info", value="Amount, character, or currency name", party_name="Specific party (Defaults to Active)")
+@app_commands.describe(action="create/setactive/balance/add_funds/remove_funds/set_currency/add_member/remove_member/info/delete/rename", value="Amount, character, or currency name", party_name="Specific party (Defaults to Active)")
 async def cmd_party(interaction: discord.Interaction, action: str, value: str = None, party_name: str = None):
-    if interaction.user.id not in ADMIN_USER_IDS:
-        return await interaction.response.send_message("âŒ You do not have permission to manage parties.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS:
+        return await interaction.response.send_message("❌ You do not have permission to manage parties.", ephemeral=True)
     guild_id = str(interaction.guild_id)
     action = action.lower()
     
     if action == "create":
-        if not value: return await interaction.response.send_message("âŒ Provide a party name in 'value'.", ephemeral=True)
+        if not value: return await interaction.response.send_message("❌ Provide a party name in 'value'.", ephemeral=True)
         init_party_if_missing(guild_id, value)
-        return await interaction.response.send_message(f"âœ… Party **{value}** created!")
+        return await interaction.response.send_message(f"✅ Party **{value}** created!")
         
     if action == "setactive":
-        if not value: return await interaction.response.send_message("âŒ Provide a party name in 'value'.", ephemeral=True)
+        if not value: return await interaction.response.send_message("❌ Provide a party name in 'value'.", ephemeral=True)
         init_party_if_missing(guild_id, value)
         db["wallet"][guild_id]["active_party"] = value
         save_data("wallet", db["wallet"])
-        return await interaction.response.send_message(f"âœ… Active party set to **{value}**.")
+        return await interaction.response.send_message(f"✅ Active party set to **{value}**.")
         
     target_party = party_name if party_name else get_active_party(guild_id)
     init_party_if_missing(guild_id, target_party)
     wallet = db["wallet"][guild_id]["parties"][target_party]
     
-    if action in ["add_funds", "remove_funds", "set_currency", "add_member", "remove_member"]:
-        if interaction.user.id not in ADMIN_USER_IDS:
-            return await interaction.response.send_message("âŒ You do not have permission.", ephemeral=True)
+    if action in ["add_funds", "remove_funds", "set_currency", "add_member", "remove_member", "delete", "rename"]:
+        if interaction.user.id not in ALLOWED_USER_IDS:
+            return await interaction.response.send_message("❌ You do not have permission.", ephemeral=True)
             
     if action == "balance":
-        await interaction.response.send_message(f"ðŸ’³ The **{target_party}** party has **{wallet['balance']} {wallet['currency_name']}**.")
+        await interaction.response.send_message(f"💳 The **{target_party}** party has **{wallet['balance']} {wallet['currency_name']}**.")
     elif action == "info":
         members = ", ".join(wallet.get("members", [])) or "None"
         desc = f"**Currency:** {wallet['currency_name']}\n**Balance:** {wallet['balance']}\n**Members:** {members}"
-        embed = discord.Embed(title=f"ðŸ›¡ï¸ Party: {target_party}", description=desc, color=discord.Color.blue())
+        embed = discord.Embed(title=f"🛡️ Party: {target_party}", description=desc, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed)
     elif action == "set_currency":
-        if not value: return await interaction.response.send_message("âŒ Provide a currency name in 'value'.", ephemeral=True)
+        if not value: return await interaction.response.send_message("❌ Provide a currency name in 'value'.", ephemeral=True)
         wallet["currency_name"] = value
         save_data("wallet", db["wallet"])
-        await interaction.response.send_message(f"ðŸ“ Currency for **{target_party}** set to **{value}**.")
+        await interaction.response.send_message(f"📝 Currency for **{target_party}** set to **{value}**.")
     elif action == "add_funds":
         try: amount = int(value)
-        except: return await interaction.response.send_message("âŒ Value must be a number.", ephemeral=True)
+        except: return await interaction.response.send_message("❌ Value must be a number.", ephemeral=True)
         wallet["balance"] += amount
         save_data("wallet", db["wallet"])
-        await interaction.response.send_message(f"ðŸ’° Added {amount} {wallet['currency_name']} to **{target_party}**! New Balance: {wallet['balance']}")
+        await interaction.response.send_message(f"💰 Added {amount} {wallet['currency_name']} to **{target_party}**! New Balance: {wallet['balance']}")
     elif action == "remove_funds":
         try: amount = int(value)
-        except: return await interaction.response.send_message("âŒ Value must be a number.", ephemeral=True)
+        except: return await interaction.response.send_message("❌ Value must be a number.", ephemeral=True)
         wallet["balance"] = max(0, wallet["balance"] - amount)
         save_data("wallet", db["wallet"])
-        await interaction.response.send_message(f"ðŸ’¸ Removed {amount} {wallet['currency_name']} from **{target_party}**. New Balance: {wallet['balance']}")
+        await interaction.response.send_message(f"💸 Removed {amount} {wallet['currency_name']} from **{target_party}**. New Balance: {wallet['balance']}")
     elif action == "add_member":
-        if not value: return await interaction.response.send_message("âŒ Provide a character name in 'value'.", ephemeral=True)
+        if not value: return await interaction.response.send_message("❌ Provide a character name in 'value'.", ephemeral=True)
         if "members" not in wallet: wallet["members"] = []
         if value not in wallet["members"]:
             wallet["members"].append(value)
             save_data("wallet", db["wallet"])
-        await interaction.response.send_message(f"ðŸ‘¥ Added **{value}** to the **{target_party}** party.")
+        await interaction.response.send_message(f"👥 Added **{value}** to the **{target_party}** party.")
     elif action == "remove_member":
-        if not value: return await interaction.response.send_message("âŒ Provide a character name in 'value'.", ephemeral=True)
+        if not value: return await interaction.response.send_message("❌ Provide a character name in 'value'.", ephemeral=True)
         if "members" in wallet and value in wallet["members"]:
             wallet["members"].remove(value)
             save_data("wallet", db["wallet"])
-            await interaction.response.send_message(f"ðŸ‘‹ Removed **{value}** from the **{target_party}** party.")
+            await interaction.response.send_message(f"👋 Removed **{value}** from the **{target_party}** party.")
         else:
-            await interaction.response.send_message("âŒ Member not found.", ephemeral=True)
+            await interaction.response.send_message("❌ Member not found.", ephemeral=True)
+    elif action == "delete":
+        del_target = party_name if party_name else value
+        if not del_target:
+            return await interaction.response.send_message("❌ Provide the party name in 'party_name' or 'value' to delete it.", ephemeral=True)
+        if del_target in db["wallet"][guild_id]["parties"]:
+            del db["wallet"][guild_id]["parties"][del_target]
+            if db["wallet"][guild_id].get("active_party") == del_target:
+                db["wallet"][guild_id]["active_party"] = None
+            save_data("wallet", db["wallet"])
+            await interaction.response.send_message(f"🗑️ Party **{del_target}** and all its storages have been deleted.")
+        else:
+            await interaction.response.send_message(f"❌ Party **{del_target}** not found.", ephemeral=True)
+    elif action == "rename":
+        if not party_name: return await interaction.response.send_message("❌ Provide the OLD party name in 'party_name' and the NEW party name in 'value'.", ephemeral=True)
+        if not value: return await interaction.response.send_message("❌ Provide the NEW party name in 'value'.", ephemeral=True)
+        if value in db["wallet"][guild_id]["parties"]:
+            return await interaction.response.send_message("❌ A party with the new name already exists.", ephemeral=True)
+            
+        db["wallet"][guild_id]["parties"][value] = db["wallet"][guild_id]["parties"].pop(target_party)
+        
+        if db["wallet"][guild_id].get("active_party") == target_party:
+            db["wallet"][guild_id]["active_party"] = value
+            
+        save_data("wallet", db["wallet"])
+        await interaction.response.send_message(f"📝 Party renamed from **{target_party}** to **{value}**.")
     else:
-        await interaction.response.send_message("âŒ Invalid action.", ephemeral=True)
+        await interaction.response.send_message("❌ Invalid action.", ephemeral=True)
 
 # --- STORAGE COMMANDS ---
 @bot.tree.command(name="storage", description="Open the unified Storage Dashboard")
 @app_commands.describe(character="Target character", party_name="Specific party (Defaults to Active)", view_only="If True, just lists items.")
-@app_commands.autocomplete(character=character_target_auto, party_name=party_autocomplete)
-async def cmd_storage(interaction: discord.Interaction, character: str = None, party_name: str = None, view_only: bool = False):
+@app_commands.autocomplete(character=character_target_auto, party_name=party_autocomplete, storage_name=storage_name_auto)
+async def cmd_storage(interaction: discord.Interaction, character: str = None, party_name: str = None, view_only: bool = False, storage_name: str = "Main"):
     guild_id = str(interaction.guild_id)
     target_party = party_name if party_name else get_active_party(guild_id)
     init_party_if_missing(guild_id, target_party)
     
+    wallet = db["wallet"][guild_id]["parties"][target_party]
+    if "storages" not in wallet:
+        wallet["storages"] = {}
+        if "storage" in wallet: wallet["storages"]["Main"] = wallet.pop("storage")
+    if storage_name not in wallet["storages"]: wallet["storages"][storage_name] = {}
+    
     if view_only:
-        wallet = db["wallet"][guild_id]["parties"][target_party]
-        storage = wallet.get("storage", {})
+        storage = wallet["storages"][storage_name]
         if not storage:
-            return await interaction.response.send_message(f"ðŸ“¦ The **{target_party}** storage is currently empty.")
+            return await interaction.response.send_message(f"📦 The **{target_party}** storage (**{storage_name}**) is currently empty.")
             
         desc = ""
         for i_uid, data in storage.items():
             name = data.get("name", "Unknown")
             uses = data.get("uses", 1)
             if isinstance(uses, int):
-                desc += f"â€¢ **{name}** ({uses} uses left)\n"
+                desc += f"• **{name}** ({uses} uses left)\n"
             else:
-                desc += f"â€¢ **{name}** ({uses})\n"
+                desc += f"• **{name}** ({uses})\n"
                 
         if len(desc) > 3500:
             desc = desc[:3500] + "\n...and more."
             
-        embed = discord.Embed(title=f"ðŸ“¦ {target_party} Storage", description=desc, color=discord.Color.dark_grey())
+        embed = discord.Embed(title=f"📦 {target_party} Storage: {storage_name}", description=desc, color=discord.Color.dark_grey())
         return await interaction.response.send_message(embed=embed)
 
     if character and not validate_target(interaction, character):
-        return await interaction.response.send_message("âŒ Target out of scope.", ephemeral=True)
+        return await interaction.response.send_message("❌ Target out of scope.", ephemeral=True)
         
     char_name = character if character else get_active_name(interaction)
     if not char_name:
-        return await interaction.response.send_message("âŒ You must have an active character.", ephemeral=True)
+        return await interaction.response.send_message("❌ You must have an active character.", ephemeral=True)
         
-    view = StorageDashboardView(char_name, guild_id, target_party)
+    view = StorageDashboardView(char_name, guild_id, target_party, storage_name=storage_name)
     uid, pdata = view.get_char_pdata()
     
     if not pdata:
-        return await interaction.response.send_message(f"âŒ Character **{char_name}** not found.", ephemeral=True)
+        return await interaction.response.send_message(f"❌ Character **{char_name}** not found.", ephemeral=True)
         
     await interaction.response.send_message(embed=view.build_embed(), view=view, ephemeral=True)
 
@@ -2291,7 +2749,7 @@ async def cmd_storage(interaction: discord.Interaction, character: str = None, p
 @app_commands.autocomplete(category=shop_category_auto, item_name=shop_item_auto, target=shop_target_auto)
 async def cmd_shop(interaction: discord.Interaction, action: str, category: str = None, item_name: str = None, quantity: int = 1, target: str = None, party_name: str = None):
     if target and not validate_target(interaction, target):
-        return await interaction.response.send_message("âŒ Target out of scope.", ephemeral=True)
+        return await interaction.response.send_message("❌ Target out of scope.", ephemeral=True)
     action = action.lower()
     guild_id = str(interaction.guild_id)
     target_party = party_name if party_name else get_active_party(guild_id)
@@ -2303,23 +2761,23 @@ async def cmd_shop(interaction: discord.Interaction, action: str, category: str 
     if action == "list":
         if not category or category not in db["shop"]:
             cats = ", ".join(db["shop"].keys())
-            return await interaction.response.send_message(f"ðŸ›’ **Shop Categories:** {cats}\nUse `/shop list <category>` to view items.", ephemeral=True)
+            return await interaction.response.send_message(f"🛒 **Shop Categories:** {cats}\nUse `/shop list <category>` to view items.", ephemeral=True)
             
         items = db["shop"][category]
         lines = []
         for i_id, i_data in sorted(items.items(), key=lambda x: x[1]['name']):
             if is_item_locked(i_data, guild_id, target_party): continue
-            lines.append(f"â€¢ **{i_data['name']}** - {i_data['price']} {currency}")
+            lines.append(f"• **{i_data['name']}** - {i_data['price']} {currency}")
             
         if not lines: lines = ["No items available in this category."]
         desc = "\n".join(lines)
         if len(desc) > 4000: desc = desc[:4000] + "... (truncated)"
             
-        embed = discord.Embed(title=f"ðŸ›’ Shop: {category} ({target_party} Party)", description=desc, color=discord.Color.gold())
+        embed = discord.Embed(title=f"🛒 Shop: {category} ({target_party} Party)", description=desc, color=discord.Color.gold())
         await interaction.response.send_message(embed=embed)
         
     elif action == "buy":
-        if not item_name: return await interaction.response.send_message("âŒ Specify an item_name.", ephemeral=True)
+        if not item_name: return await interaction.response.send_message("❌ Specify an item_name.", ephemeral=True)
         
         item_data = None
         for g, items in db["shop"].items():
@@ -2327,23 +2785,26 @@ async def cmd_shop(interaction: discord.Interaction, action: str, category: str 
                 item_data = items[item_name.lower()]
                 break
                 
-        if not item_data: return await interaction.response.send_message(f"âŒ **{item_name}** not found in the shop.", ephemeral=True)
+        if not item_data: return await interaction.response.send_message(f"❌ **{item_name}** not found in the shop.", ephemeral=True)
         if is_item_locked(item_data, guild_id, target_party):
-            return await interaction.response.send_message(f"ðŸ”’ **{item_data['name']}** is out of stock for this party!", ephemeral=True)
+            return await interaction.response.send_message(f"🔒 **{item_data['name']}** is out of stock for this party!", ephemeral=True)
             
         total_cost = item_data["price"] * quantity
         if wallet["balance"] < total_cost:
-            return await interaction.response.send_message(f"âŒ The **{target_party}** party cannot afford this! Cost: **{total_cost} {currency}**, Balance: **{wallet['balance']} {currency}**.", ephemeral=True)
+            return await interaction.response.send_message(f"❌ The **{target_party}** party cannot afford this! Cost: **{total_cost} {currency}**, Balance: **{wallet['balance']} {currency}**.", ephemeral=True)
             
-        char_name = target if target else get_active_name(interaction)
+        char_name, interaction_target_guild = parse_target(target if target else get_active_name(interaction), str(interaction.guild_id))
         group, key, base_data = get_item_base_data(item_data['name'])
         max_uses = parse_uses(base_data.get("uses", "1")) if base_data else 1
         
         if char_name.lower() == "storage":
-            if "storage" not in wallet: wallet["storage"] = {}
+            if "storages" not in wallet:
+                wallet["storages"] = {}
+                if "storage" in wallet: wallet["storages"]["Main"] = wallet.pop("storage")
+            if "Main" not in wallet["storages"]: wallet["storages"]["Main"] = {}
             for _ in range(quantity):
                 new_uid = generate_uid(item_data['name'])
-                wallet["storage"][new_uid] = {
+                wallet["storages"]["Main"][new_uid] = {
                     "name": item_data['name'],
                     "uses": max_uses,
                     "max_uses": max_uses,
@@ -2351,25 +2812,25 @@ async def cmd_shop(interaction: discord.Interaction, action: str, category: str 
                 }
             wallet["balance"] -= total_cost
             save_data("wallet", db["wallet"])
-            await interaction.response.send_message(f"ðŸ›ï¸ Bought **{quantity}x {item_data['name']}** and sent to **Storage**!\nRemaining Balance: **{wallet['balance']} {currency}**")
+            await interaction.response.send_message(f"🛍️ Bought **{quantity}x {item_data['name']}** and sent to **Storage (Main)**!\nRemaining Balance: **{wallet['balance']} {currency}**")
         else:
             # Check if character is in the party
             members = wallet.get("members", [])
             if char_name not in members:
-                return await interaction.response.send_message(f"âŒ **{char_name}** is not in the **{target_party}** party! Add them first using `/party add_member`.", ephemeral=True)
+                return await interaction.response.send_message(f"❌ **{char_name}** is not in the **{target_party}** party! Add them first using `/party add_member`.", ephemeral=True)
                 
             success, msg = grant_item(char_name, item_data['name'], quantity, max_uses, "Neutral")
             if success:
                 wallet["balance"] -= total_cost
                 save_data("wallet", db["wallet"])
-                await interaction.response.send_message(f"ðŸ›ï¸ Bought **{quantity}x {item_data['name']}** for **{char_name}**!\nRemaining Balance: **{wallet['balance']} {currency}**")
+                await interaction.response.send_message(f"🛍️ Bought **{quantity}x {item_data['name']}** for **{char_name}**!\nRemaining Balance: **{wallet['balance']} {currency}**")
             else:
-                await interaction.response.send_message(f"âŒ {msg}", ephemeral=True)
+                await interaction.response.send_message(f"❌ {msg}", ephemeral=True)
                 
     elif action in ["lock", "unlock"]:
-        if interaction.user.id not in ADMIN_USER_IDS:
-            return await interaction.response.send_message("âŒ You do not have permission.", ephemeral=True)
-        if not item_name: return await interaction.response.send_message("âŒ Specify an item_name.", ephemeral=True)
+        if interaction.user.id not in ALLOWED_USER_IDS:
+            return await interaction.response.send_message("❌ You do not have permission.", ephemeral=True)
+        if not item_name: return await interaction.response.send_message("❌ Specify an item_name.", ephemeral=True)
         
         item_found = False
         for g, items in db["shop"].items():
@@ -2381,9 +2842,9 @@ async def cmd_shop(interaction: discord.Interaction, action: str, category: str 
                 
         if item_found:
             save_data("wallet", db["wallet"])
-            await interaction.response.send_message(f"âœ… **{item_name}** has been **{action}ed** for **{target_party}**.", ephemeral=True)
+            await interaction.response.send_message(f"✅ **{item_name}** has been **{action}ed** for **{target_party}**.", ephemeral=True)
         else:
-            await interaction.response.send_message(f"âŒ **{item_name}** not found in the shop.", ephemeral=True)
+            await interaction.response.send_message(f"❌ **{item_name}** not found in the shop.", ephemeral=True)
 
 
 # --- UPGRADE COMMANDS ---
@@ -2391,8 +2852,8 @@ async def cmd_shop(interaction: discord.Interaction, action: str, category: str 
 @app_commands.describe(action="satchel/heart/set_max_hearts", target="Character or Party", amount="Amount or True/False")
 @app_commands.autocomplete(target=char_item_auto) # Use char auto (Wait, char_item_auto doesn't fit 'party')
 async def cmd_upgrade(interaction: discord.Interaction, action: str, target: str, amount: str):
-    if interaction.user.id not in ADMIN_USER_IDS:
-        return await interaction.response.send_message("âŒ You do not have permission.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS:
+        return await interaction.response.send_message("❌ You do not have permission.", ephemeral=True)
         
     action = action.lower()
     guild_id = str(interaction.guild_id)
@@ -2401,14 +2862,14 @@ async def cmd_upgrade(interaction: discord.Interaction, action: str, target: str
         try:
             val = int(amount)
         except ValueError:
-            return await interaction.response.send_message("âŒ Amount must be an integer.", ephemeral=True)
+            return await interaction.response.send_message("❌ Amount must be an integer.", ephemeral=True)
             
         if guild_id not in db["wallet"] or target not in db["wallet"][guild_id].get("parties", {}):
-            return await interaction.response.send_message(f"âŒ Party **{target}** not found.", ephemeral=True)
+            return await interaction.response.send_message(f"❌ Party **{target}** not found.", ephemeral=True)
             
         db["wallet"][guild_id]["parties"][target]["max_hearts"] = val
         save_data("wallet", db["wallet"])
-        return await interaction.response.send_message(f"â¤ï¸ Max Crystal Hearts for **{target}** set to **{val}**.")
+        return await interaction.response.send_message(f"❤️ Max Crystal Hearts for **{target}** set to **{val}**.")
         
     # For satchel/heart, we need a character
     char_name = target
@@ -2421,20 +2882,20 @@ async def cmd_upgrade(interaction: discord.Interaction, action: str, target: str
             break
             
     if not char_stats:
-        return await interaction.response.send_message(f"âŒ Character **{char_name}** not found.", ephemeral=True)
+        return await interaction.response.send_message(f"❌ Character **{char_name}** not found.", ephemeral=True)
         
     if action == "satchel":
         val = amount.lower() in ["true", "1", "yes"]
         char_stats["dimensional_satchel"] = val
         save_data("players", db["players"])
         status = "Granted" if val else "Removed"
-        return await interaction.response.send_message(f"ðŸŽ’ Dimensional Satchel **{status}** for **{char_name}**! Their inventory limit is now {'20' if val else '16'}.")
+        return await interaction.response.send_message(f"🎒 Dimensional Satchel **{status}** for **{char_name}**! Their inventory limit is now {'20' if val else '16'}.")
         
     elif action == "heart":
         try:
             val = int(amount)
         except ValueError:
-            return await interaction.response.send_message("âŒ Amount must be an integer.", ephemeral=True)
+            return await interaction.response.send_message("❌ Amount must be an integer.", ephemeral=True)
             
         current = char_stats.get("crystal_hearts", 0)
         
@@ -2448,7 +2909,7 @@ async def cmd_upgrade(interaction: discord.Interaction, action: str, target: str
                         break
                         
             if current + val > max_hearts:
-                return await interaction.response.send_message(f"âŒ This would exceed the party's Crystal Heart cap ({current}/{max_hearts})!", ephemeral=True)
+                return await interaction.response.send_message(f"❌ This would exceed the party's Crystal Heart cap ({current}/{max_hearts})!", ephemeral=True)
                 
         char_stats["crystal_hearts"] = current + val
         char_stats["max_hp"] = char_stats.get("max_hp", 100) + (20 * val)
@@ -2462,9 +2923,9 @@ async def cmd_upgrade(interaction: discord.Interaction, action: str, target: str
         save_data("players", db["players"])
         
         verb = "Added" if val > 0 else "Removed"
-        return await interaction.response.send_message(f"â¤ï¸ **{verb} {abs(val)}x Crystal Hearts** for **{char_name}**!\nMax HP and Current HP modified by **{val * 20}**.")
+        return await interaction.response.send_message(f"❤️ **{verb} {abs(val)}x Crystal Hearts** for **{char_name}**!\nMax HP and Current HP modified by **{val * 20}**.")
     else:
-        return await interaction.response.send_message("âŒ Invalid action.", ephemeral=True)
+        return await interaction.response.send_message("❌ Invalid action.", ephemeral=True)
 
 
 
@@ -2480,14 +2941,14 @@ async def cmd_upgrade(interaction: discord.Interaction, action: str, target: str
 ])
 async def cmd_editpreference(interaction: discord.Interaction, itemname: str, preference: str, target: str = None):
     if target and not validate_target(interaction, target):
-        return await interaction.response.send_message("âŒ Target out of scope.", ephemeral=True)
+        return await interaction.response.send_message("❌ Target out of scope.", ephemeral=True)
     uid = f"{interaction.user.id}_{interaction.guild_id}"
     if uid not in db["players"]:
-        return await interaction.response.send_message("âŒ You are not registered.", ephemeral=True)
+        return await interaction.response.send_message("❌ You are not registered.", ephemeral=True)
         
-    char_name = target if target else get_active_name(interaction)
+    char_name, interaction_target_guild = parse_target(target if target else get_active_name(interaction), str(interaction.guild_id))
     if not char_name or char_name not in db["players"][uid].get("characters", {}):
-        return await interaction.response.send_message("âŒ Character not found. Set an active character or specify a valid target.", ephemeral=True)
+        return await interaction.response.send_message("❌ Character not found. Set an active character or specify a valid target.", ephemeral=True)
         
     char_data = db["players"][uid]["characters"][char_name]
     if "preferences" not in char_data:
@@ -2496,10 +2957,10 @@ async def cmd_editpreference(interaction: discord.Interaction, itemname: str, pr
     if preference == "Neutral":
         if itemname in char_data["preferences"]:
             del char_data["preferences"][itemname]
-        msg = f"âœ… Removed **{itemname}** from **{char_name}**'s preferences (Set to Neutral)."
+        msg = f"✅ Removed **{itemname}** from **{char_name}**'s preferences (Set to Neutral)."
     else:
         char_data["preferences"][itemname] = preference
-        msg = f"âœ… Set **{char_name}**'s preference for **{itemname}** to **{preference}**."
+        msg = f"✅ Set **{char_name}**'s preference for **{itemname}** to **{preference}**."
         
     save_data("players", db["players"])
     await interaction.response.send_message(msg)
@@ -2511,9 +2972,9 @@ async def cmd_editpreference(interaction: discord.Interaction, itemname: str, pr
 @app_commands.describe(target="Specific character (Defaults to Active)", magic_name="The exact name of the magic to remove")
 @app_commands.autocomplete(target=target_auto, magic_name=magic_name_auto)
 async def cmd_removemagic(interaction: discord.Interaction, magic_name: str, target: str = None):
-    char_name = target if target else get_active_name(interaction)
+    char_name, interaction_target_guild = parse_target(target if target else get_active_name(interaction), str(interaction.guild_id))
     if not can_edit(interaction, char_name):
-        return await interaction.response.send_message("âŒ You do not have permission to edit this character.", ephemeral=True)
+        return await interaction.response.send_message("❌ You do not have permission to edit this character.", ephemeral=True)
         
     owner_id = None
     for p_uid, pdata in db["players"].items():
@@ -2521,26 +2982,27 @@ async def cmd_removemagic(interaction: discord.Interaction, magic_name: str, tar
             owner_id = p_uid
             break
             
-    if not owner_id: return await interaction.response.send_message("âŒ Character not found.", ephemeral=True)
+    if not owner_id: return await interaction.response.send_message("❌ Character not found.", ephemeral=True)
     
     char_data = db["players"][owner_id]["characters"][char_name]
     if "magic" not in char_data or magic_name not in char_data["magic"]:
-        return await interaction.response.send_message(f"âŒ Could not find MAGIC **{magic_name}**.", ephemeral=True)
+        return await interaction.response.send_message(f"❌ Could not find MAGIC **{magic_name}**.", ephemeral=True)
         
     del char_data["magic"][magic_name]
     save_data("players", db["players"])
-    await interaction.response.send_message(f"âœ… Removed MAGIC **{magic_name}** from **{char_name}**.", ephemeral=True)
+    await interaction.response.send_message(f"✅ Removed MAGIC **{magic_name}** from **{char_name}**.", ephemeral=True)
 
 @bot.tree.command(name="dmtargetscope", description="[DM ONLY] Change your targeting scope")
 @app_commands.choices(scope=[
     app_commands.Choice(name="Global", value="global"),
+    app_commands.Choice(name="Server", value="server"),
     app_commands.Choice(name="Party", value="party"),
     app_commands.Choice(name="Own", value="own")
 ])
 async def cmd_dmtargetscope(interaction: discord.Interaction, scope: str):
     uid = str(interaction.user.id)
-    if interaction.user.id not in ADMIN_USER_IDS:
-        return await interaction.response.send_message("âŒ This command is restricted to DMs.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS:
+        return await interaction.response.send_message("❌ This command is restricted to DMs.", ephemeral=True)
     
     if "dms" not in db:
         db["dms"] = {}
@@ -2549,7 +3011,7 @@ async def cmd_dmtargetscope(interaction: discord.Interaction, scope: str):
         
     db["dms"][uid]["target_scope"] = scope
     save_data("dms", db["dms"])
-    await interaction.response.send_message(f"âœ… Targeting scope set to **{scope.capitalize()}**.", ephemeral=True)
+    await interaction.response.send_message(f"✅ Targeting scope set to **{scope.capitalize()}**.", ephemeral=True)
 
 
 @bot.command()
@@ -2577,16 +3039,16 @@ class MetronomeView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         
-    @discord.ui.button(label="Reroll ðŸŽ²", style=discord.ButtonStyle.primary, custom_id="btn_metronome_reroll")
+    @discord.ui.button(label="Reroll 🎲", style=discord.ButtonStyle.primary, custom_id="btn_metronome_reroll")
     async def btn_reroll(self, interaction: discord.Interaction, button: discord.ui.Button):
         import random
         metronomes = list(db.get("metronomes", {}).values())
         if not metronomes:
-            return await interaction.response.send_message("âŒ Metronome database is empty.", ephemeral=True)
+            return await interaction.response.send_message("❌ Metronome database is empty.", ephemeral=True)
             
         chosen = random.choice(metronomes)
         
-        embed = discord.Embed(title=f"ðŸŽ² Metronome: {chosen['name']}", color=discord.Color.brand_green())
+        embed = discord.Embed(title=f"🎲 Metronome: {chosen['name']}", color=discord.Color.brand_green())
         
         hit_text = chosen['hit']
         if chosen.get('tags'):
@@ -2596,7 +3058,8 @@ class MetronomeView(discord.ui.View):
         embed.add_field(name="Damage", value=chosen['damage'], inline=False)
         embed.add_field(name="Effect", value=chosen['effect'], inline=False)
         
-        await interaction.response.edit_message(embed=embed, view=self)
+        await interaction.response.edit_message(view=None)
+        await interaction.followup.send(embed=embed, view=self)
 
 @bot.tree.command(name="metronome", description="Roll a random metronome, or lookup a specific one")
 @app_commands.describe(name="Leave blank to roll randomly, or type a name to lookup")
@@ -2605,18 +3068,18 @@ async def cmd_metronome(interaction: discord.Interaction, name: str = None):
     import random
     metronomes = db.get("metronomes", {})
     if not metronomes:
-        return await interaction.response.send_message("âŒ Metronome database is empty.", ephemeral=True)
+        return await interaction.response.send_message("❌ Metronome database is empty.", ephemeral=True)
         
     if name:
         chosen = metronomes.get(name)
         if not chosen:
-            return await interaction.response.send_message(f"âŒ Metronome **{name}** not found.", ephemeral=True)
+            return await interaction.response.send_message(f"❌ Metronome **{name}** not found.", ephemeral=True)
         view = None
     else:
         chosen = random.choice(list(metronomes.values()))
         view = MetronomeView()
         
-    embed = discord.Embed(title=f"ðŸŽ² Metronome: {chosen['name']}", color=discord.Color.brand_green())
+    embed = discord.Embed(title=f"🎲 Metronome: {chosen['name']}", color=discord.Color.brand_green())
     
     hit_text = chosen['hit']
     if chosen.get('tags'):
@@ -2637,7 +3100,7 @@ async def clearguild(ctx):
     try:
         bot.tree.clear_commands(guild=ctx.guild)
         await bot.tree.sync(guild=ctx.guild)
-        await ctx.send("ðŸ§¹ Cleared all ghost guild-specific slash commands! Restart your Discord app (Ctrl+R) and it will now fall back to the global commands.")
+        await ctx.send("🧹 Cleared all ghost guild-specific slash commands! Restart your Discord app (Ctrl+R) and it will now fall back to the global commands.")
     except Exception as e:
         await ctx.send(f"Error: {e}")
         
@@ -2647,7 +3110,7 @@ async def clearglobal(ctx):
     try:
         bot.tree.clear_commands(guild=None)
         await bot.tree.sync()
-        await ctx.send("ðŸ§¹ Cleared all global slash commands!")
+        await ctx.send("🧹 Cleared all global slash commands!")
     except Exception as e:
         await ctx.send(f"Error: {e}")
 
@@ -2660,24 +3123,24 @@ async def cmd_joinparty(interaction: discord.Interaction, char_name: str, party_
     db_players = db["players"]
     
     if player_key not in db_players or char_name not in db_players[player_key].get("characters", {}):
-        return await interaction.response.send_message(f"âŒ You don't own a character named **{char_name}**.", ephemeral=True)
+        return await interaction.response.send_message(f"❌ You don't own a character named **{char_name}**.", ephemeral=True)
         
     db_wallet = db["wallet"]
     if guild_id not in db_wallet or "parties" not in db_wallet[guild_id]:
-        return await interaction.response.send_message("âŒ No parties exist in this server yet.", ephemeral=True)
+        return await interaction.response.send_message("❌ No parties exist in this server yet.", ephemeral=True)
         
     if party_name not in db_wallet[guild_id]["parties"]:
-        return await interaction.response.send_message(f"âŒ The party **{party_name}** does not exist.", ephemeral=True)
+        return await interaction.response.send_message(f"❌ The party **{party_name}** does not exist.", ephemeral=True)
         
     party = db_wallet[guild_id]["parties"][party_name]
     members = party.setdefault("members", [])
     
     if char_name in members:
-        return await interaction.response.send_message(f"âš ï¸ **{char_name}** is already in the **{party_name}** party!", ephemeral=True)
+        return await interaction.response.send_message(f"⚠️ **{char_name}** is already in the **{party_name}** party!", ephemeral=True)
         
     members.append(char_name)
     save_data("wallet", db_wallet)
-    await interaction.response.send_message(f"ðŸŽ‰ **{char_name}** has joined the **{party_name}** party!")
+    await interaction.response.send_message(f"🎉 **{char_name}** has joined the **{party_name}** party!")
 
 @bot.tree.command(name="leaveparty", description="Leave your current party with one of your characters")
 @app_commands.describe(char_name="The character to remove from their party")
@@ -2688,11 +3151,11 @@ async def cmd_leaveparty(interaction: discord.Interaction, char_name: str):
     db_players = db["players"]
     
     if player_key not in db_players or char_name not in db_players[player_key].get("characters", {}):
-        return await interaction.response.send_message(f"âŒ You don't own a character named **{char_name}**.", ephemeral=True)
+        return await interaction.response.send_message(f"❌ You don't own a character named **{char_name}**.", ephemeral=True)
         
     db_wallet = db["wallet"]
     if guild_id not in db_wallet or "parties" not in db_wallet[guild_id]:
-        return await interaction.response.send_message("âŒ No parties exist in this server yet.", ephemeral=True)
+        return await interaction.response.send_message("❌ No parties exist in this server yet.", ephemeral=True)
         
     left_parties = []
     for p_name, party in db_wallet[guild_id]["parties"].items():
@@ -2702,10 +3165,10 @@ async def cmd_leaveparty(interaction: discord.Interaction, char_name: str):
             left_parties.append(p_name)
             
     if not left_parties:
-        return await interaction.response.send_message(f"âš ï¸ **{char_name}** is not in any party.", ephemeral=True)
+        return await interaction.response.send_message(f"⚠️ **{char_name}** is not in any party.", ephemeral=True)
         
     save_data("wallet", db_wallet)
-    await interaction.response.send_message(f"ðŸ‘‹ **{char_name}** has left the following parties: **{', '.join(left_parties)}**")
+    await interaction.response.send_message(f"👋 **{char_name}** has left the following parties: **{', '.join(left_parties)}**")
 
 
 
@@ -2724,10 +3187,10 @@ class CharacterListGroup(app_commands.Group):
         members = wallet.get("members", [])
         
         if not members:
-            return await interaction.response.send_message(f"ðŸ›¡ï¸ The **{target_party}** party has no members.")
+            return await interaction.response.send_message(f"🛡️ The **{target_party}** party has no members.")
             
-        desc = "\n".join([f"â€¢ {m}" for m in members])
-        embed = discord.Embed(title=f"ðŸ›¡ï¸ Members of {target_party}", description=desc, color=discord.Color.blue())
+        desc = "\n".join([f"• {m}" for m in members])
+        embed = discord.Embed(title=f"🛡️ Members of {target_party}", description=desc, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed)
         
     @app_commands.command(name="player", description="List all characters owned by a player in this server")
@@ -2737,13 +3200,13 @@ class CharacterListGroup(app_commands.Group):
         
         db_players = db["players"]
         if player_key not in db_players or not db_players[player_key].get("roster"):
-            return await interaction.response.send_message(f"âŒ **{user.display_name}** has no characters registered in this server.")
+            return await interaction.response.send_message(f"❌ **{user.display_name}** has no characters registered in this server.")
             
         roster = db_players[player_key]["roster"]
         active = db_players[player_key].get("active")
         
-        desc = "\n".join([f"â€¢ {c} {'*(Active)*' if c == active else ''}" for c in roster])
-        embed = discord.Embed(title=f"ðŸ‘¤ {user.display_name}'s Characters", description=desc, color=discord.Color.green())
+        desc = "\n".join([f"• {c} {'*(Active)*' if c == active else ''}" for c in roster])
+        embed = discord.Embed(title=f"👤 {user.display_name}'s Characters", description=desc, color=discord.Color.green())
         await interaction.response.send_message(embed=embed)
 
 
@@ -2765,12 +3228,12 @@ class ConfirmClearView(discord.ui.View):
                     pdata["characters"][self.target_name]["inventory"] = {}
                     save_data("players", db["players"])
                     for child in self.children: child.disabled = True
-                    return await interaction.response.edit_message(content=f"âœ… Cleared the inventory of **{self.target_name}**.", view=self)
-            return await interaction.response.edit_message(content=f"âŒ Could not find target **{self.target_name}**.")
+                    return await interaction.response.edit_message(content=f"✅ Cleared the inventory of **{self.target_name}**.", view=self)
+            return await interaction.response.edit_message(content=f"❌ Could not find target **{self.target_name}**.")
             
         elif self.target_type == "party":
             party = db["wallet"].get(self.guild_id, {}).get("parties", {}).get(self.target_name)
-            if not party: return await interaction.response.edit_message(content=f"âŒ Party **{self.target_name}** not found.")
+            if not party: return await interaction.response.edit_message(content=f"❌ Party **{self.target_name}** not found.")
             members = party.get("members", [])
             for m in members:
                 for p_uid, pdata in db["players"].items():
@@ -2778,42 +3241,41 @@ class ConfirmClearView(discord.ui.View):
                         pdata["characters"][m]["inventory"] = {}
             save_data("players", db["players"])
             for child in self.children: child.disabled = True
-            return await interaction.response.edit_message(content=f"âœ… Cleared local inventories for all members of party **{self.target_name}**.", view=self)
+            return await interaction.response.edit_message(content=f"✅ Cleared local inventories for all members of party **{self.target_name}**.", view=self)
             
         elif self.target_type == "storage":
             party = db["wallet"].get(self.guild_id, {}).get("parties", {}).get(self.target_name)
-            if not party: return await interaction.response.edit_message(content=f"âŒ Party **{self.target_name}** not found.")
+            if not party: return await interaction.response.edit_message(content=f"❌ Party **{self.target_name}** not found.")
             party["storage"] = {}
             save_data("wallet", db["wallet"])
             for child in self.children: child.disabled = True
-            return await interaction.response.edit_message(content=f"âœ… Cleared shared storage inventory for party **{self.target_name}**.", view=self)
+            return await interaction.response.edit_message(content=f"✅ Cleared shared storage inventory for party **{self.target_name}**.", view=self)
 
 @bot.tree.command(name="clearinventory", description="DM ONLY: Clear a character, party, or storage inventory")
 @app_commands.describe(target="Clear a specific character's inventory", party="Clear all party members' inventories", storage="Clear a party's shared storage")
 @app_commands.autocomplete(target=target_auto, party=party_autocomplete, storage=party_autocomplete)
 async def cmd_clearinventory(interaction: discord.Interaction, target: str = None, party: str = None, storage: str = None):
-    if interaction.user.id not in ADMIN_USER_IDS:
-        return await interaction.response.send_message("âŒ Denied.", ephemeral=True)
+    if interaction.user.id not in ALLOWED_USER_IDS:
+        return await interaction.response.send_message("❌ Denied.", ephemeral=True)
         
     if not any([target, party, storage]):
-        return await interaction.response.send_message("âŒ You must specify one of: target, party, or storage.", ephemeral=True)
+        return await interaction.response.send_message("❌ You must specify one of: target, party, or storage.", ephemeral=True)
         
     if sum(bool(x) for x in [target, party, storage]) > 1:
-        return await interaction.response.send_message("âŒ Please only specify ONE modifier per command.", ephemeral=True)
+        return await interaction.response.send_message("❌ Please only specify ONE modifier per command.", ephemeral=True)
         
     guild_id = str(interaction.guild_id)
     if target:
         view = ConfirmClearView("target", target, guild_id)
-        msg = f"âš ï¸ Are you sure you want to completely wipe the personal inventory of **{target}**?"
+        msg = f"⚠️ Are you sure you want to completely wipe the personal inventory of **{target}**?"
     elif party:
         view = ConfirmClearView("party", party, guild_id)
-        msg = f"âš ï¸ Are you sure you want to completely wipe the personal inventories of ALL members in the **{party}** party?"
+        msg = f"⚠️ Are you sure you want to completely wipe the personal inventories of ALL members in the **{party}** party?"
     elif storage:
         view = ConfirmClearView("storage", storage, guild_id)
-        msg = f"âš ï¸ Are you sure you want to completely wipe the external shared storage of the **{storage}** party?"
+        msg = f"⚠️ Are you sure you want to completely wipe the external shared storage of the **{storage}** party?"
         
     await interaction.response.send_message(msg, view=view, ephemeral=True)
 
 
 bot.run(TOKEN)
-
