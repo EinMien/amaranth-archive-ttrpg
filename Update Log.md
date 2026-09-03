@@ -50,7 +50,7 @@
 - Fixed a bug where `/badge` displayed the next badge's name in the description.
 - Added an `Edit MAGIC` button to `/editsheet` simplifying editing process. The `Add MAGIC` button can still edit a MAGIC because I was too lazy to rewrite the function.
 - Fixed an issue where the `/creategroup` confirmation message had a speech impairment.
-- Added a bug where I didn't wait for Loveable Sylveon to give me the text for the `/help` commands of the `/addbadge`, `/editbadge`, and `/removebadge` commands and just did my own thing.
+- Added a bug where I didn't wait for <@863657238416588810> to give me the text for the `/help` commands of the `/addbadge`, `/editbadge`, and `/removebadge` commands and just did my own thing.
 - Updated `/backup` command to increment through every file in the bot's dataset instead of using a hard-coded list.
 - Nerfed Fox.
 
@@ -71,3 +71,9 @@
 - Fixed many small spelling mistakes and formatting with the `/badge` section of `/help`.
 - Fixed an issue where `/movesheet` won't pull up movesheets from other servers.
 - Nerfed Fox.
+
+
+# Amaranth Archive v1.8 Update
+- Added chunking for ``/help:/item`` and ``/help:/status`` so that the names of ITEMs and STATUSes appear in embeds and are easier to look through.
+- Fixed an issue where some data for testing the bot was accidentally included and replaced old data. Everything is back to normal.
+- Nerfed Fox

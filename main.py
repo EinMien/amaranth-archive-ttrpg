@@ -545,6 +545,44 @@ class VariantView(discord.ui.View):
             await interaction.response.edit_message(embed=embed)
         return button_callback
 
+
+class HelpCategoryView(discord.ui.View):
+    def __init__(self, category: str):
+        super().__init__(timeout=180)
+        self.category = category # 'items' or 'statuses'
+        self.groups = db["groups"].get(category, {})
+        self.data_db = db.get(category, {})
+        
+        options = []
+        for g_name in list(self.groups.keys())[:25]:
+            options.append(discord.SelectOption(label=g_name, value=g_name))
+            
+        if not options:
+            options.append(discord.SelectOption(label="No Groups Available", value="none"))
+            
+        self.select = discord.ui.Select(placeholder="Select a category...", min_values=1, max_values=1, options=options)
+        self.select.callback = self.select_callback
+        self.add_item(self.select)
+
+    async def select_callback(self, interaction: discord.Interaction):
+        g_name = self.select.values[0]
+        if g_name == "none":
+            return await interaction.response.defer()
+            
+        g_desc = self.groups.get(g_name, "")
+        g_items = [v.get("title", k.title()) for k, v in self.data_db.get(g_name, {}).items()]
+        count = len(g_items)
+        
+        type_name = "Golden" if g_name.lower() == "special" and self.category == "items" else g_name
+        label = "ITEMs" if self.category == "items" else "STATUSes"
+        
+        items_str = f" There are {count} {type_name} {label}, which consist of:\n{', '.join(sorted(g_items))}." if g_items else ""
+        
+        desc = f"**{g_name}**: {g_desc}\n\n{items_str}"
+        embed = discord.Embed(title=f"{self.category.title()} - {g_name}", description=desc, color=discord.Color.blue())
+        
+        await interaction.response.edit_message(embed=embed, view=self)
+
 class HelpView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -1823,37 +1861,18 @@ async def cmd_help(interaction: discord.Interaction, command_name: str = None):
         "removebadge": "Removes an existing Normal Badge, Combo Badge, or Emblem!",
     }
 
-    # Groups logic decoupled for independent help texts
+    # Interactive Help Views for Items and Statuses
     if c in ["item", "status"]:
-        
-            
-        category = "statuses" if "status" in c else "items" if "item" in c else "badges"
-        
-        group_lines = []
-        for g_name, g_desc in db["groups"][category].items():
-            g_items = [v.get("title", k.title()) for k, v in db[category].get(g_name, {}).items()]
-            items_str = f" which consist of:\n{', '.join(sorted(g_items))}." if g_items else ""
-            group_lines.append(f"**{g_name}**: {g_desc}{items_str}")
-            
-        groups_joined = "\n\n".join(group_lines) if group_lines else "*(No groups created yet. Ask DM to use /creategroup)*"
+        category = "statuses" if c == "status" else "items"
         
         if c == "item":
-            group_lines = []
-            for g_name, g_desc in db["groups"]["items"].items():
-                g_items = [v.get("title", k.title()) for k, v in db["items"].get(g_name, {}).items()]
-                count = len(g_items)
-                type_name = "Golden" if g_name.lower() == "special" else g_name
-                items_str = f" There are {count} {type_name} ITEMs, which consist of:\n{', '.join(sorted(g_items))}." if g_items else ""
-                group_lines.append(f"**{g_name}**: {g_desc}{items_str}")
+            desc = "Looks up a specific ITEM! These give a wonderful range of effects, from healing up your Party to crippling the enemy! Select a group below to view its items."
+        else:
+            desc = "Look up a specific STATUS! These are effects that can greatly increase or decrease one's combat ability! Select a group below to view its statuses."
             
-            groups_joined = "\n\n".join(group_lines) if group_lines else "*(No groups created yet. Ask DM to use /creategroup)*"
-            
-            msg = f"**Command: `/item`**\nLooks up a specific ITEM! These give a wonderful range of effects, from healing up your Party to crippling the enemy! The ITEM groups are below.\n\n{groups_joined}"
-            return await send_chunked_message(interaction, msg)
-            
-        elif c == "status":
-            msg = f"**Command: `/status`**\nLook up a specific STATUS! These are effects that can greatly increase or decrease one's combat ability! The STATUS groups are below.\n\n{groups_joined}"
-            return await send_chunked_message(interaction, msg)
+        embed = discord.Embed(title=f"Command Help: `/{c}`", description=desc, color=discord.Color.green())
+        view = HelpCategoryView(category)
+        return await interaction.response.send_message(embed=embed, view=view)
 
     if c in help_dict:
         embed = discord.Embed(title=f"Command Help: `/{c}`", description=help_dict[c], color=discord.Color.green())
