@@ -73,7 +73,16 @@
 - Nerfed Fox.
 
 
-# Amaranth Archive v1.8 Update
+# Amaranth Archive v1.8 Update Logs
 - Added chunking for ``/help:/item`` and ``/help:/status`` so that the names of ITEMs and STATUSes appear in embeds and are easier to look through.
 - Fixed an issue where some data for testing the bot was accidentally included and replaced old data. Everything is back to normal.
+- Nerfed Fox
+
+
+# Amaranth Archive v1.9 Update Logs
+- Fixed a bug where ``/party:action`` would not show the commands it will use in the information bar, and made it so it is now a pre-selection menu for your action.
+- Fixed a bug where the server ID would appear when using an ITEM.
+- Fixed a bug where adding ITEMs to Storage would result in sending those ITEMs in an impossible to access Storage.
+- Made creating and deleting Storages easier.
+- Made it so that when checking Storage, the default options are for the party your active character is already in, instead of the first Party/Main.
 - Nerfed Fox

@@ -56,9 +56,9 @@ db = {
 
 def grant_item(char_name, display_title, quantity, max_uses, preference="Neutral", starting_uses=None, guild_id=None):
     if char_name.startswith("Storage: "):
-        party_name = char_name[9:]
+        party_name, storage_name = parse_storage_target(char_name)
         if guild_id and guild_id in db.get("wallet", {}) and party_name in db["wallet"][guild_id].get("parties", {}):
-            inv = db["wallet"][guild_id]["parties"][party_name].setdefault("storage", {})
+            inv = db["wallet"][guild_id]["parties"][party_name].setdefault("storages", {}).setdefault(storage_name, {})
             limit = 50 
             if len(inv) + quantity > limit:
                 return False, f"Storage limit exceeded (Max: {limit})"
@@ -107,6 +107,13 @@ def parse_target(target: str, default_guild: str) -> tuple[str, str]:
         return target.split("|", 1)
     return target, default_guild
 
+
+def parse_storage_target(char_name: str) -> tuple[str, str]:
+    rest = char_name[9:] # strip "Storage: "
+    if " :: " in rest:
+        return rest.split(" :: ", 1)
+    return rest, "Main"
+
 def get_allowed_targets(interaction: discord.Interaction) -> list[dict]:
     player_key = f"{interaction.user.id}_{interaction.guild_id}"
     guild_id = str(interaction.guild_id) if interaction.guild_id else None
@@ -117,6 +124,15 @@ def get_allowed_targets(interaction: discord.Interaction) -> list[dict]:
             gid = p_key.split("_", 1)[1] if "_" in p_key else guild_id
             for c in pdata.get("roster", []):
                 my_chars.append({"name": c, "guild": gid})
+                
+    def add_storages(p_name, target_list):
+        if not guild_id or guild_id not in db["wallet"]: return
+        storages = db["wallet"][guild_id].get("parties", {}).get(p_name, {}).get("storages", {"Main": {}})
+        for s_name in storages.keys():
+            if s_name == "Main":
+                target_list.append({"name": f"Storage: {p_name}", "guild": guild_id})
+            else:
+                target_list.append({"name": f"Storage: {p_name} :: {s_name}", "guild": guild_id})
     
     if interaction.user.id in ALLOWED_USER_IDS:
         scope = db.get("dms", {}).get(str(interaction.user.id), {}).get("target_scope", "global")
@@ -129,7 +145,7 @@ def get_allowed_targets(interaction: discord.Interaction) -> list[dict]:
             
             if guild_id and guild_id in db.get("wallet", {}):
                 for p_name in db["wallet"][guild_id].get("parties", {}).keys():
-                    all_chars.append({"name": f"Storage: {p_name}", "guild": guild_id})
+                    add_storages(p_name, all_chars)
             
             # Deduplicate by name and guild
             seen = set()
@@ -152,7 +168,7 @@ def get_allowed_targets(interaction: discord.Interaction) -> list[dict]:
                         server_chars.append({"name": c, "guild": guild_id})
             if guild_id in db.get("wallet", {}):
                 for p_name in db["wallet"][guild_id].get("parties", {}).keys():
-                    server_chars.append({"name": f"Storage: {p_name}", "guild": guild_id})
+                    add_storages(p_name, server_chars)
             return server_chars
             
         elif scope == "party" and guild_id:
@@ -161,7 +177,7 @@ def get_allowed_targets(interaction: discord.Interaction) -> list[dict]:
             if guild_id in db.get("wallet", {}) and active in db["wallet"][guild_id].get("parties", {}):
                 for c in db["wallet"][guild_id]["parties"][active].get("members", []):
                     res.append({"name": c, "guild": guild_id})
-                res.append({"name": f"Storage: {active}", "guild": guild_id})
+                add_storages(active, res)
             # Deduplicate
             seen = set()
             dedup = []
@@ -183,7 +199,7 @@ def get_allowed_targets(interaction: discord.Interaction) -> list[dict]:
             for p_name, p_data in parties.items():
                 if active_char in p_data.get("members", []):
                     for c in p_data.get("members", []): allowed.append({"name": c, "guild": guild_id})
-                    allowed.append({"name": f"Storage: {p_name}", "guild": guild_id})
+                    add_storages(p_name, allowed)
                     found = True
                     break
         
@@ -193,7 +209,7 @@ def get_allowed_targets(interaction: discord.Interaction) -> list[dict]:
                 for p_name, p_data in parties.items():
                     if c_obj["name"] in p_data.get("members", []):
                         for c in p_data.get("members", []): allowed.append({"name": c, "guild": guild_id})
-                        allowed.append({"name": f"Storage: {p_name}", "guild": guild_id})
+                        add_storages(p_name, allowed)
                         
     # Deduplicate
     seen = set()
@@ -911,9 +927,9 @@ class MovesheetView(discord.ui.View):
 # ==========================================
 async def process_item_use(interaction, target_name: str, author_name: str, owner_id: str, uid: str, action: str = "use", use_times: int = 1, guild_id: str = None):
     if author_name.startswith("Storage: "):
-        party_name = author_name[9:]
+        party_name, storage_name = parse_storage_target(author_name)
         wallet = db["wallet"][guild_id]["parties"][party_name]
-        inv = wallet.get("storages", {}).get("Main", {})
+        inv = wallet.get("storages", {}).get(storage_name, {})
     else:
         inv = db["players"][owner_id]["characters"][author_name]["inventory"]
         
@@ -938,8 +954,11 @@ async def process_item_use(interaction, target_name: str, author_name: str, owne
     
     times_text = f" {use_times} times" if use_times > 1 else ""
     
+    display_author = author_name.split('|')[0]
+    display_target = target_name.split('|')[0]
+    
     if "quantity" in item_inst:
-        used_text = f"**{author_name}** used **{item_name}**{times_text} on **{target_name}**! *(Old format)*"
+        used_text = f"**{display_author}** used **{item_name}**{times_text} on **{display_target}**! *(Old format)*"
     else:
         uses = item_inst.get("uses", 1)
         if isinstance(uses, int):
@@ -948,11 +967,11 @@ async def process_item_use(interaction, target_name: str, author_name: str, owne
             item_inst["uses"] -= use_times
             if item_inst["uses"] <= 0:
                 del inv[uid]
-                used_text = f"**{author_name}** used **{item_name}**{times_text} on **{target_name}**, consuming it!"
+                used_text = f"**{display_author}** used **{item_name}**{times_text} on **{display_target}**, consuming it!"
             else:
-                used_text = f"**{author_name}** used **{item_name}**{times_text} on **{target_name}**! ({item_inst['uses']}/{item_inst['max_uses']} uses left)."
+                used_text = f"**{display_author}** used **{item_name}**{times_text} on **{display_target}**! ({item_inst['uses']}/{item_inst['max_uses']} uses left)."
         else:
-            used_text = f"**{author_name}** used **{item_name}**{times_text} on **{target_name}**! (Infinite uses)."
+            used_text = f"**{display_author}** used **{item_name}**{times_text} on **{display_target}**! (Infinite uses)."
         
     if author_name.startswith("Storage: "):
         save_data("wallet", db["wallet"])
@@ -961,14 +980,14 @@ async def process_item_use(interaction, target_name: str, author_name: str, owne
     
     group, key, base_data = get_item_base_data(item_name)
     effect = base_data.get("effect", "No mechanical effect provided.") if base_data else "Unknown."
-    flavor = base_data.get("description", "").replace("_", target_name) if base_data else ""
+    flavor = base_data.get("description", "").replace("_", display_target) if base_data else ""
     pref = item_inst.get("preference", "Neutral")
     
     desc = f"{used_text}\n\n**Preference:** {pref}\n**Effect:**\n{effect}"
     if flavor:
         desc += f"\n\n*\"{flavor}\"*"
         
-    embed = discord.Embed(title=f"🎒 {author_name} used {item_name}!", description=desc, color=discord.Color.gold())
+    embed = discord.Embed(title=f"🎒 {display_author} used {item_name}!", description=desc, color=discord.Color.gold())
     await interaction.response.send_message(embed=embed)
 
 
@@ -1626,9 +1645,9 @@ async def cmd_takeitem(interaction: discord.Interaction, item_name: str, target:
         
     guild_id = str(interaction.guild_id)
     if char_name.startswith("Storage: "):
-        party_name = char_name[9:]
+        party_name, storage_name = parse_storage_target(char_name)
         if guild_id in db.get("wallet", {}) and party_name in db["wallet"][guild_id].get("parties", {}):
-            inv = db["wallet"][guild_id]["parties"][party_name].get("storage", {})
+            inv = db["wallet"][guild_id]["parties"][party_name].get("storages", {}).get(storage_name, {})
             instances = {i_uid: data for i_uid, data in inv.items() if data.get("name", i_uid).lower() == item_name.lower()}
             
             if not instances:
@@ -2545,7 +2564,7 @@ def init_party_if_missing(guild_id: str, party: str):
             "balance": 0,
             "lock_overrides": {},
             "members": [],
-            "storage": {}
+            "storages": {"Main": {}}
         }
         save_data("wallet", db["wallet"])
         
@@ -2618,7 +2637,20 @@ async def party_autocomplete(interaction: discord.Interaction, current: str):
     return [app_commands.Choice(name=p, value=p) for p in parties if current.lower() in p.lower()][:25]
 
 @bot.tree.command(name="party", description="Manage the party, members, and currency")
-@app_commands.describe(action="create/setactive/balance/add_funds/remove_funds/set_currency/add_member/remove_member/info/delete/rename", value="Amount, character, or currency name", party_name="Specific party (Defaults to Active)")
+@app_commands.describe(action="The action to perform", value="Amount, character, or currency name", party_name="Specific party (Defaults to Active)")
+@app_commands.choices(action=[
+    app_commands.Choice(name="Create", value="create"),
+    app_commands.Choice(name="Set Active", value="setactive"),
+    app_commands.Choice(name="Check Balance", value="balance"),
+    app_commands.Choice(name="Add Funds", value="add_funds"),
+    app_commands.Choice(name="Remove Funds", value="remove_funds"),
+    app_commands.Choice(name="Set Currency", value="set_currency"),
+    app_commands.Choice(name="Add Member", value="add_member"),
+    app_commands.Choice(name="Remove Member", value="remove_member"),
+    app_commands.Choice(name="Info", value="info"),
+    app_commands.Choice(name="Delete", value="delete"),
+    app_commands.Choice(name="Rename", value="rename")
+])
 async def cmd_party(interaction: discord.Interaction, action: str, value: str = None, party_name: str = None):
     if interaction.user.id not in ALLOWED_USER_IDS:
         return await interaction.response.send_message("❌ You do not have permission to manage parties.", ephemeral=True)
@@ -2714,18 +2746,52 @@ async def cmd_party(interaction: discord.Interaction, action: str, value: str = 
 
 # --- STORAGE COMMANDS ---
 @bot.tree.command(name="storage", description="Open the unified Storage Dashboard")
-@app_commands.describe(character="Target character", party_name="Specific party (Defaults to Active)", view_only="If True, just lists items.")
+@app_commands.describe(action="View, Create, or Delete a storage box", character="Target character", party_name="Specific party (Defaults to Active)", view_only="If True, just lists items.")
+@app_commands.choices(action=[
+    app_commands.Choice(name="View", value="view"),
+    app_commands.Choice(name="Create", value="create"),
+    app_commands.Choice(name="Delete", value="delete")
+])
 @app_commands.autocomplete(character=character_target_auto, party_name=party_autocomplete, storage_name=storage_name_auto)
-async def cmd_storage(interaction: discord.Interaction, character: str = None, party_name: str = None, view_only: bool = False, storage_name: str = "Main"):
+async def cmd_storage(interaction: discord.Interaction, action: str = "view", character: str = None, party_name: str = None, view_only: bool = False, storage_name: str = "Main"):
     guild_id = str(interaction.guild_id)
-    target_party = party_name if party_name else get_active_party(guild_id)
+    
+    target_party = party_name
+    if not target_party:
+        player_key = f"{interaction.user.id}_{guild_id}"
+        active_char = db["players"].get(player_key, {}).get("active")
+        if active_char:
+            for p_name, p_data in db.get("wallet", {}).get(guild_id, {}).get("parties", {}).items():
+                if active_char in p_data.get("members", []):
+                    target_party = p_name
+                    break
+        if not target_party:
+            target_party = get_active_party(guild_id)
+            
     init_party_if_missing(guild_id, target_party)
     
     wallet = db["wallet"][guild_id]["parties"][target_party]
-    if "storages" not in wallet:
-        wallet["storages"] = {}
-        if "storage" in wallet: wallet["storages"]["Main"] = wallet.pop("storage")
-    if storage_name not in wallet["storages"]: wallet["storages"][storage_name] = {}
+    if "storages" not in wallet: wallet["storages"] = {}
+    
+    if action == "create":
+        if storage_name in wallet["storages"]:
+            return await interaction.response.send_message(f"❌ Storage **{storage_name}** already exists.", ephemeral=True)
+        wallet["storages"][storage_name] = {}
+        save_data("wallet", db["wallet"])
+        return await interaction.response.send_message(f"✅ Created new storage box: **{storage_name}**")
+        
+    if action == "delete":
+        if storage_name == "Main":
+            return await interaction.response.send_message("❌ You cannot delete the Main storage.", ephemeral=True)
+        if storage_name not in wallet["storages"]:
+            return await interaction.response.send_message(f"❌ Storage **{storage_name}** does not exist.", ephemeral=True)
+        del wallet["storages"][storage_name]
+        save_data("wallet", db["wallet"])
+        return await interaction.response.send_message(f"🗑️ Deleted storage box: **{storage_name}**")
+
+    # action == "view"
+    if storage_name not in wallet["storages"]: 
+        return await interaction.response.send_message(f"❌ Storage **{storage_name}** does not exist.", ephemeral=True)
     
     if view_only:
         storage = wallet["storages"][storage_name]
@@ -3263,12 +3329,14 @@ class ConfirmClearView(discord.ui.View):
             return await interaction.response.edit_message(content=f"✅ Cleared local inventories for all members of party **{self.target_name}**.", view=self)
             
         elif self.target_type == "storage":
-            party = db["wallet"].get(self.guild_id, {}).get("parties", {}).get(self.target_name)
-            if not party: return await interaction.response.edit_message(content=f"❌ Party **{self.target_name}** not found.")
-            party["storage"] = {}
+            party_name, storage_name = parse_storage_target(f"Storage: {self.target_name}") # reuse helper
+            party = db["wallet"].get(self.guild_id, {}).get("parties", {}).get(party_name)
+            if not party: return await interaction.response.edit_message(content=f"❌ Party **{party_name}** not found.")
+            if "storages" in party and storage_name in party["storages"]:
+                party["storages"][storage_name] = {}
             save_data("wallet", db["wallet"])
             for child in self.children: child.disabled = True
-            return await interaction.response.edit_message(content=f"✅ Cleared shared storage inventory for party **{self.target_name}**.", view=self)
+            return await interaction.response.edit_message(content=f"✅ Cleared shared storage inventory for party **{party_name} ({storage_name})**.", view=self)
 
 @bot.tree.command(name="clearinventory", description="DM ONLY: Clear a character, party, or storage inventory")
 @app_commands.describe(target="Clear a specific character's inventory", party="Clear all party members' inventories", storage="Clear a party's shared storage")
